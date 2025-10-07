@@ -1,11 +1,11 @@
 import React from "react";
 import { Col, Row } from "antd";
-import BoardMenu from "@/components/board/board.main";
+import BoardMenu from "@/components/board/board.menu";
 import MostPopularTemplate from "@/components/board/mostPopular";
 import RecentView from "@/components/board/recentView";
 import WorkSpaces from "@/components/board/workspaces";
 import { currentUser } from "@clerk/nextjs/server";
-import { userService } from "@/libs/services";
+import { boardService, userService } from "@/libs/services";
 const BoardPage = async () => {
     const user = await currentUser();
     if (user) {

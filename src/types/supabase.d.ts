@@ -6,18 +6,19 @@ declare global {
         id: string;
         full_name: string;
         avatar_url: string;
-        created_at: Date;
-        updated_at: Date;
+        email: string;
+        created_at?: Date;
+        updated_at?: Date;
     }
 
     interface IBoard {
         id: string;
         title: string;
-        description: string | null;
-        color: string;
+        description?: string | null;
+        backgroundUrl: string;
         user_id: string;
-        created_at: string;
-        updated_at: string;
+        created_at?: string;
+        updated_at?: string;
     }
 
     interface IColumn {

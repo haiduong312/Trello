@@ -31,6 +31,17 @@ export const userService = {
 };
 
 export const boardService = {
+    async getMostPopularBoard() {
+        const { data, error } = await supabase
+            .from("most_popular_board")
+            .select("*");
+
+        if (error) {
+            throw error;
+        }
+        return data || [];
+    },
+
     async getBoards(userId: string): Promise<IBoard[]> {
         const { data, error } = await supabase
             .from("boards")

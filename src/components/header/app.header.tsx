@@ -11,7 +11,7 @@ import {
 import { Avatar, Button, Input, Layout, Popover } from "antd";
 import "@/components/styles/header.style.scss";
 import Image from "next/image";
-import { UserButton } from "@clerk/nextjs";
+import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
 export default function AppHeader() {
     return (
         <Layout>
@@ -75,7 +75,7 @@ export default function AppHeader() {
                         gap: 10,
                     }}
                 >
-                    <Popover
+                    {/* <Popover
                         placement="bottom"
                         content={<div>Share your thoughts on Trello</div>}
                     >
@@ -103,7 +103,18 @@ export default function AppHeader() {
                             style={{ fontSize: 20 }}
                             className="ques"
                         />
-                    </Popover>
+                    </Popover> */}
+                    <OrganizationSwitcher
+                        appearance={{
+                            elements: {
+                                rootBox: {
+                                    width: "35px",
+                                    height: "35px",
+                                    marginRight: "80px",
+                                },
+                            },
+                        }}
+                    />
 
                     <Popover
                         placement="bottomRight"
