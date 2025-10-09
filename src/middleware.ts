@@ -9,8 +9,8 @@ export default clerkMiddleware(async (auth, req) => {
         await auth.protect();
     }
     if (userId && req.nextUrl.pathname === "/") {
-        const boardUrl = new URL("/board", req.url);
-        return NextResponse.redirect(boardUrl);
+        const dashboardUrl = new URL("/dashboard", req.url);
+        return NextResponse.redirect(dashboardUrl);
     }
 });
 

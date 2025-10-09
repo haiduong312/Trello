@@ -28,7 +28,7 @@ const MostPopularTemplate = () => {
                 }}
             >
                 <h2 style={{ fontSize: 19, marginBottom: 20 }}>
-                    Most popular templates
+                    Most Popular Templates
                 </h2>
             </div>
             <div style={{ display: "flex", gap: 50 }}>
@@ -50,6 +50,7 @@ const MostPopularTemplate = () => {
                                 src={item.backgroundUrl}
                                 width={215}
                                 height={72}
+                                priority
                             />
                         }
                     >
