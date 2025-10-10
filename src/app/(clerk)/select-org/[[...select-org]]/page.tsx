@@ -4,8 +4,8 @@ export default function CreateOrganizationPage() {
     return (
         <div>
             <OrganizationList
-                afterSelectOrganizationUrl="/board"
-                afterCreateOrganizationUrl="/board"
+                afterSelectOrganizationUrl="/dashboard/:id"
+                afterCreateOrganizationUrl="/dashboard/:id"
             />
         </div>
     );

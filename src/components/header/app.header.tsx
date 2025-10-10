@@ -1,18 +1,38 @@
 "use client";
 
-import {
-    AppstoreOutlined,
-    BellOutlined,
-    NotificationOutlined,
-    QuestionCircleOutlined,
-    SearchOutlined,
-    UserOutlined,
-} from "@ant-design/icons";
-import { Avatar, Button, Input, Layout, Popover } from "antd";
+import { AppstoreOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Input, Layout, Popover } from "antd";
 import "@/components/styles/header.style.scss";
 import Image from "next/image";
-import { OrganizationSwitcher, UserButton } from "@clerk/nextjs";
+import {
+    OrganizationSwitcher,
+    useAuth,
+    useOrganization,
+    UserButton,
+    useUser,
+} from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 export default function AppHeader() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const { orgId } = useAuth();
+    const { user } = useUser();
+
+    useEffect(() => {
+        if (!user) return;
+
+        if (orgId) {
+            if (!pathname.includes(`/dashboard/${orgId}`)) {
+                router.push(`/dashboard/${orgId}`);
+            }
+        } else {
+            if (!pathname.includes(`/dashboard/personal`)) {
+                router.push(`/dashboard/personal`);
+            }
+        }
+    }, [orgId, user, pathname, router]);
     return (
         <Layout>
             <Layout.Header
@@ -75,42 +95,13 @@ export default function AppHeader() {
                         gap: 10,
                     }}
                 >
-                    {/* <Popover
-                        placement="bottom"
-                        content={<div>Share your thoughts on Trello</div>}
-                    >
-                        <NotificationOutlined
-                            style={{ fontSize: 20 }}
-                            className="noti"
-                        />
-                    </Popover>
-
-                    <Popover
-                        placement="bottom"
-                        content={<div>Notifications</div>}
-                    >
-                        <BellOutlined
-                            style={{ fontSize: 20 }}
-                            className="bell"
-                        />
-                    </Popover>
-
-                    <Popover
-                        placement="bottom"
-                        content={<div>Information</div>}
-                    >
-                        <QuestionCircleOutlined
-                            style={{ fontSize: 20 }}
-                            className="ques"
-                        />
-                    </Popover> */}
                     <OrganizationSwitcher
                         appearance={{
                             elements: {
                                 rootBox: {
                                     width: "35px",
                                     height: "35px",
-                                    marginRight: "80px",
+                                    marginRight: "150px",
                                 },
                             },
                         }}

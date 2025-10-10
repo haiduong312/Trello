@@ -1,29 +1,34 @@
 "use client";
 
-import { Card, Input, Modal, Radio } from "antd";
+import { Card, Input, Modal } from "antd";
 import "@/components/styles/mostpopular.scss";
 import Image from "next/image";
 import { boardService } from "@/libs/services";
-import { useClerkContext } from "@/libs/context/ClerkProvider";
 import { useEffect, useState } from "react";
+import { useOrganization, useUser } from "@clerk/nextjs";
 
 const backgrounds = [
-    "assets/background-1.jpg",
-    "assets/background-2.jpg",
-    "assets/background-3.jpg",
-    "assets/background-4.jpg",
-    "assets/background-5.jpg",
-    "assets/background-6.jpg",
-    "assets/background-7.jpg",
-    "assets/background-8.jpg",
+    "/assets/background-1.jpg",
+    "/assets/background-2.jpg",
+    "/assets/background-3.jpg",
+    "/assets/background-4.jpg",
+    "/assets/background-5.jpg",
+    "/assets/background-6.jpg",
+    "/assets/background-7.jpg",
+    "/assets/background-8.jpg",
 ];
 
 const WorkSpaces = () => {
+    const organization = useOrganization();
+    let orgId = organization.organization?.id;
+    if (!orgId) orgId = "personal";
     const { Meta } = Card;
     const [createTitle, setCreateTitle] = useState<string>("");
-    const [createBg, setCreateBg] = useState<string>("assets/background-1.jpg");
-    const [value, setValue] = useState<string>("assets/background-1.jpg");
-    const user = useClerkContext();
+    const [createBg, setCreateBg] = useState<string>(
+        "/assets/background-1.jpg"
+    );
+    const [value, setValue] = useState<string>("/assets/background-1.jpg");
+    const { user } = useUser();
     const [boards, setBoards] = useState<IBoard[] | null>(null);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +38,7 @@ const WorkSpaces = () => {
 
         const fetchBoards = async () => {
             try {
-                const data = await boardService.getBoards(user.id);
-                console.log("data", data);
+                const data = await boardService.getBoards(user.id, orgId!);
                 setBoards(data);
             } catch (error) {
                 console.error("Error fetching boards:", error);
@@ -42,16 +46,29 @@ const WorkSpaces = () => {
         };
 
         fetchBoards();
-    }, [user]);
+    }, [user, orgId]);
     const showModal = () => {
         setIsModalOpen(true);
     };
 
-    const handleOk = () => {
-        setIsModalOpen(false);
+    const handleOk = async () => {
+        if (user) {
+            const newBoard = await boardService.createBoards({
+                title: createTitle,
+                backgroundUrl: createBg,
+                user_id: user.id,
+                orgId: orgId!,
+            });
+            setBoards((prev) => (prev ? [...prev, newBoard] : [newBoard]));
+            setCreateTitle("");
+            setCreateBg("/assets/background-1.jpg");
+            setIsModalOpen(false);
+        }
     };
 
     const handleCancel = () => {
+        setCreateTitle("");
+        setCreateBg("/assets/background-1.jpg");
         setIsModalOpen(false);
     };
 
@@ -154,7 +171,7 @@ const WorkSpaces = () => {
                         }}
                     >
                         <img
-                            src="assets/create-board-skeleton.svg"
+                            src="/assets/create-board-skeleton.svg"
                             alt="create board background"
                         />
                     </div>
@@ -191,7 +208,7 @@ const WorkSpaces = () => {
                                 }}
                             >
                                 <Image
-                                    src={`/${bg}`}
+                                    src={bg}
                                     alt={`background-${i}`}
                                     fill
                                     sizes="64px"
@@ -213,6 +230,7 @@ const WorkSpaces = () => {
                             onChange={(e) => {
                                 setCreateTitle(e.target.value);
                             }}
+                            required
                         />
                     </div>
                 </Modal>

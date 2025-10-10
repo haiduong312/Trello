@@ -32,37 +32,48 @@ const MostPopularTemplate = () => {
                 </h2>
             </div>
             <div style={{ display: "flex", gap: 50 }}>
-                {mostPopularBoards?.map((item, index) => (
-                    <Card
-                        key={index}
-                        hoverable
-                        style={{ height: 113, width: 215, textAlign: "center" }}
-                        styles={{
-                            body: {
-                                padding: 0,
-                                paddingTop: 10,
-                            },
-                        }}
-                        cover={
-                            <Image
-                                draggable={false}
-                                alt="template's background"
-                                src={item.backgroundUrl}
-                                width={215}
-                                height={72}
-                                priority
-                            />
-                        }
-                    >
-                        <Meta
-                            title={
-                                <span style={{ fontWeight: 400, fontSize: 15 }}>
-                                    {item.title}
-                                </span>
+                {mostPopularBoards?.map((item, index) => {
+                    return (
+                        <Card
+                            key={index}
+                            hoverable
+                            style={{
+                                height: 113,
+                                width: 215,
+                                textAlign: "center",
+                            }}
+                            styles={{
+                                body: {
+                                    padding: 0,
+                                    paddingTop: 10,
+                                },
+                            }}
+                            cover={
+                                <Image
+                                    draggable={false}
+                                    alt="template's background"
+                                    src={item.backgroundUrl}
+                                    width={215}
+                                    height={72}
+                                    priority
+                                />
                             }
-                        />
-                    </Card>
-                ))}
+                        >
+                            <Meta
+                                title={
+                                    <span
+                                        style={{
+                                            fontWeight: 400,
+                                            fontSize: 15,
+                                        }}
+                                    >
+                                        {item.title}
+                                    </span>
+                                }
+                            />
+                        </Card>
+                    );
+                })}
             </div>
         </div>
     );

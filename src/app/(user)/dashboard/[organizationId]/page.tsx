@@ -4,14 +4,13 @@ import BoardMenu from "@/components/board/board.menu";
 import MostPopularTemplate from "@/components/board/mostPopular";
 import WorkSpaces from "@/components/board/workspaces";
 import { currentUser } from "@clerk/nextjs/server";
-import { boardService, userService } from "@/libs/services";
+import { userService } from "@/libs/services";
 const BoardPage = async () => {
     const user = await currentUser();
     if (user) {
         const full_name = user.lastName + user.firstName!;
         const email = user.emailAddresses[0].emailAddress;
 
-        // Gọi API đồng bộ user
         userService.syncUser(user.id, full_name, user.imageUrl, email);
     }
 

@@ -4,8 +4,6 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/config/site";
-import { ClerkContextProvider } from "@/libs/context/ClerkProvider";
-import { currentUser } from "@clerk/nextjs/server";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -26,22 +24,11 @@ export default async function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const user = await currentUser();
-    const safeUser = user
-        ? {
-              id: user.id,
-              full_name: user.firstName + user.lastName!,
-              email: user.emailAddresses[0]?.emailAddress ?? "",
-              avatar_url: user.imageUrl,
-          }
-        : null;
     return (
         <html lang="en">
             <AntdRegistry>
                 <ClerkProvider>
-                    <ClerkContextProvider user={safeUser}>
-                        <body className={inter.className}>{children}</body>
-                    </ClerkContextProvider>
+                    <body className={inter.className}>{children}</body>
                 </ClerkProvider>
             </AntdRegistry>
         </html>

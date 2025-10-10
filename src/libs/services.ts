@@ -42,13 +42,20 @@ export const boardService = {
         return data || [];
     },
 
-    async getBoards(userId: string): Promise<IBoard[]> {
-        const { data, error } = await supabase
+    async getBoards(userId: string, orgId: string): Promise<IBoard[]> {
+        let query = supabase
             .from("boards")
             .select("*")
             .eq("user_id", userId)
             .order("created_at", { ascending: false });
 
+        if (orgId !== "personal") {
+            // Nếu có orgId thì lấy bảng organization
+            query = query.eq("orgId", orgId);
+        } else {
+            query = query.eq("orgId", "personal");
+        }
+        const { data, error } = await query;
         if (error) {
             throw error;
         }
@@ -60,7 +67,12 @@ export const boardService = {
     ): Promise<IBoard> {
         const { data, error } = await supabase
             .from("boards")
-            .insert(board)
+            .insert({
+                user_id: board.user_id,
+                title: board.title,
+                backgroundUrl: board.backgroundUrl,
+                orgId: board.orgId,
+            })
             .select()
             .single();
 

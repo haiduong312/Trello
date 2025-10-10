@@ -14,11 +14,11 @@ declare global {
     interface IBoard {
         id: string;
         title: string;
-        description?: string | null;
         backgroundUrl: string;
         user_id: string;
         created_at?: string;
         updated_at?: string;
+        orgId: string;
     }
 
     interface IColumn {

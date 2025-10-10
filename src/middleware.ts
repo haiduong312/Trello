@@ -4,12 +4,17 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher(["/", "/sign-in(.*)", "/sign-up(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
-    const { userId } = await auth();
+    const { userId, orgId } = await auth();
     if (!isPublicRoute(req)) {
         await auth.protect();
     }
     if (userId && req.nextUrl.pathname === "/") {
-        const dashboardUrl = new URL("/dashboard", req.url);
+        let dashboardUrl;
+        if (orgId) {
+            dashboardUrl = new URL(`/dashboard/${orgId}`, req.url);
+        } else {
+            dashboardUrl = new URL(`/dashboard/personal`, req.url);
+        }
         return NextResponse.redirect(dashboardUrl);
     }
 });
