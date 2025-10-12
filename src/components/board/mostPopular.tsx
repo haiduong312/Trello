@@ -3,22 +3,10 @@
 import { Card } from "antd";
 import "@/components/styles/mostpopular.scss";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { boardService } from "@/libs/services";
+import { useMostPopularBoard } from "@/libs/react-query/query/board.query";
 const MostPopularTemplate = () => {
   const { Meta } = Card;
-  const [mostPopularBoards, setMostPopularBoards] = useState<IBoard[]>();
-  useEffect(() => {
-    const fetchMostPopularBoard = async () => {
-      try {
-        const data = await boardService.getMostPopularBoard();
-        setMostPopularBoards(data);
-      } catch (error) {
-        console.error("Error fetching boards:", error);
-      }
-    };
-    fetchMostPopularBoard();
-  }, []);
+  const { data: mostPopularBoards } = useMostPopularBoard();
   return (
     <div>
       <div

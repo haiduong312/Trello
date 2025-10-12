@@ -42,11 +42,12 @@ export const boardService = {
     return data || [];
   },
 
-  async getBoardsByUserId(userId: string): Promise<IBoard[]> {
+  async getPersonalBoards(userId: string): Promise<IBoard[]> {
     let query = supabase
       .from("boards")
       .select("*")
       .eq("user_id", userId)
+      .eq("orgId", "personal")
       .order("created_at", { ascending: false });
 
     const { data, error } = await query;
@@ -56,7 +57,7 @@ export const boardService = {
     return data || [];
   },
 
-  async getBoardsByOrgId(orgId: string): Promise<IBoard[]> {
+  async getOrgBoards(orgId: string): Promise<IBoard[]> {
     let query = supabase
       .from("boards")
       .select("*")

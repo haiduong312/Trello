@@ -3,17 +3,9 @@ import { Col, Row } from "antd";
 import BoardMenu from "@/components/board/board.menu";
 import MostPopularTemplate from "@/components/board/mostPopular";
 import WorkSpaces from "@/components/board/workspaces";
-import { currentUser } from "@clerk/nextjs/server";
-import { userService } from "@/libs/services";
+import { useMostPopularBoard } from "@/libs/react-query/query/board.query";
+import { boardService } from "@/libs/services";
 const BoardPage = async () => {
-  const user = await currentUser();
-  if (user) {
-    const full_name = user.lastName + user.firstName!;
-    const email = user.emailAddresses[0].emailAddress;
-
-    userService.syncUser(user.id, full_name, user.imageUrl, email);
-  }
-
   return (
     <Row>
       <Col span={4} style={{ padding: "40px 0 0 32px" }}>

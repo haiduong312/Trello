@@ -6,6 +6,11 @@ import Image from "next/image";
 import { boardService } from "@/libs/services";
 import { useEffect, useState } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
+import { useCreateBoards } from "@/libs/react-query/mutation/board.mutation";
+import {
+  useBoardOrg,
+  useBoardPersonal,
+} from "@/libs/react-query/query/board.query";
 
 const backgrounds = [
   "/assets/background-1.jpg",
@@ -19,56 +24,43 @@ const backgrounds = [
 ];
 
 const WorkSpaces = () => {
-  const organization = useOrganization();
-  let orgId = organization.organization?.id;
-  if (!orgId) orgId = "personal";
+  const { organization } = useOrganization();
+  const orgId = organization?.id ?? "personal";
   const { Meta } = Card;
+  const { user } = useUser();
+  const { mutate } = useCreateBoards();
   const [createTitle, setCreateTitle] = useState<string>("");
   const [createBg, setCreateBg] = useState<string>("/assets/background-1.jpg");
-  const { user } = useUser();
-  const [boards, setBoards] = useState<IBoard[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchBoardsByUserId = async (userId: string) => {
-    try {
-      const data = await boardService.getBoardsByUserId(userId);
-      setBoards(data);
-    } catch (error) {
-      console.error("Error fetching boards:", error);
-    }
-  };
-  const fetchBoardsByOrgId = async (orgId: string) => {
-    try {
-      const data = await boardService.getBoardsByOrgId(orgId);
-      setBoards(data);
-    } catch (error) {
-      console.error("Error fetching boards:", error);
-    }
-  };
-  useEffect(() => {
-    if (!user) return;
-    if (orgId) {
-      fetchBoardsByOrgId(orgId);
-    } else {
-      fetchBoardsByUserId(user.id);
-    }
-  }, [user, orgId]);
+  const { data: orgBoards } = useBoardOrg(orgId, orgId !== "personal");
+  const { data: personalBoards } = useBoardPersonal(
+    user?.id ?? "",
+    orgId === "personal"
+  );
+  const boards = orgId !== "personal" ? orgBoards : personalBoards;
+
   const showModal = () => {
     setIsModalOpen(true);
   };
 
-  const handleOk = async () => {
+  const handleOk = () => {
     if (user) {
-      const newBoard = await boardService.createBoards({
-        title: createTitle,
-        backgroundUrl: createBg,
-        user_id: user.id,
-        orgId: orgId!,
-      });
-      setBoards((prev) => (prev ? [...prev, newBoard] : [newBoard]));
-      setCreateTitle("");
-      setCreateBg("/assets/background-1.jpg");
-      setIsModalOpen(false);
+      mutate(
+        {
+          user_id: user.id,
+          title: createTitle,
+          backgroundUrl: createBg,
+          orgId,
+        },
+        {
+          onSuccess: () => {
+            setCreateTitle("");
+            setCreateBg("/assets/background-1.jpg");
+            setIsModalOpen(false);
+          },
+        }
+      );
     }
   };
 
