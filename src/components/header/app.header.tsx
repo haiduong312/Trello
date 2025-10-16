@@ -13,23 +13,27 @@ import {
 } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import Link from "next/link";
 export default function AppHeader() {
     const router = useRouter();
     const pathname = usePathname();
     const { orgId } = useAuth();
     const { user } = useUser();
-
+    const prevOrgId = useRef<string | null>(null);
     useEffect(() => {
         if (!user) return;
 
-        if (orgId) {
-            if (!pathname.includes(`/dashboard/${orgId}`)) {
-                router.push(`/dashboard/${orgId}`);
-            }
-        } else {
-            if (!pathname.includes(`/dashboard/personal`)) {
-                router.push(`/dashboard/personal`);
+        // Chỉ redirect khi orgId đổi so với lần trước
+        if (orgId !== prevOrgId.current) {
+            prevOrgId.current = orgId ?? null;
+
+            // Chỉ redirect nếu đang ở vùng dashboard
+            if (pathname.startsWith("/dashboard")) {
+                const target = orgId
+                    ? `/dashboard/${orgId}`
+                    : `/dashboard/personal`;
+                router.replace(target); // replace để tránh thêm vào history
             }
         }
     }, [orgId, user, pathname, router]);
@@ -66,7 +70,7 @@ export default function AppHeader() {
                             }}
                         />
                     </div>
-                    <div className="app-icon">
+                    <Link href={"/"} className="app-icon">
                         <Image
                             src="/assets/trello-icon.svg"
                             alt="trello"
@@ -74,7 +78,7 @@ export default function AppHeader() {
                             height={25}
                         />
                         <div className="title">Trello</div>
-                    </div>
+                    </Link>
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
                     <Input

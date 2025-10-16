@@ -9,14 +9,13 @@ export default clerkMiddleware(async (auth, req) => {
         await auth.protect();
     }
     if (userId && req.nextUrl.pathname === "/") {
-        let dashboardUrl;
-        if (orgId) {
-            dashboardUrl = new URL(`/dashboard/${orgId}`, req.url);
-        } else {
-            dashboardUrl = new URL(`/dashboard/personal`, req.url);
-        }
+        const dashboardUrl = new URL(
+            orgId ? `/dashboard/${orgId}` : `/dashboard/personal`,
+            req.url
+        );
         return NextResponse.redirect(dashboardUrl);
     }
+    return NextResponse.next();
 });
 
 export const config = {
