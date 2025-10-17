@@ -3,37 +3,42 @@
 import { useBoardId } from "@/libs/react-query/query/board.query";
 import { useColumnById } from "@/libs/react-query/query/column.query";
 import { usePathname } from "next/navigation";
-import { Card, Typography, Button, Modal, Input, Space } from "antd";
+import {
+    Card,
+    Typography,
+    Button,
+    Modal,
+    Input,
+    Space,
+    Popconfirm,
+} from "antd";
 import { useState } from "react";
 import "@/components/styles/board.style.scss";
-import { Metadata } from "next";
+import BoardHeader from "../header/board.header";
+import ColumnModal from "./modal.column";
+import { CloseOutlined } from "@ant-design/icons";
+import React from "react";
+import type { PopconfirmProps } from "antd";
+import { useDeleteColumn } from "@/libs/react-query/mutation/column.mutation";
+
 const { Title, Text } = Typography;
 
 const BoardTemplate = () => {
     const currentPathName = usePathname();
     const pathName = currentPathName.split("/board/")[1];
     const { data: column } = useColumnById(pathName);
+    console.log("column", column);
     const { data: board, isLoading } = useBoardId(pathName);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState("");
-    const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+    const [isColumnModalOpen, setIsColumnModalOpen] = useState<boolean>(false);
+    const { mutate: deleteColumn } = useDeleteColumn();
     const card = true;
     if (isLoading || !board) {
         return <div>Loading...</div>;
     }
 
-    const handleAddTask = (columnId: string) => {
-        setSelectedColumn(columnId);
-        setIsModalOpen(true);
+    const cancel: PopconfirmProps["onCancel"] = (e) => {
+        console.log(e);
     };
-
-    const handleOk = () => {};
-
-    const handleCancel = () => {
-        setIsModalOpen(false);
-    };
-
     return (
         <div
             style={{
@@ -45,6 +50,9 @@ const BoardTemplate = () => {
                 width: "100vw",
             }}
         >
+            <div>
+                <BoardHeader name={board.title} />
+            </div>
             <div className="column-container">
                 {column?.map((col, idx) => (
                     <Card
@@ -58,7 +66,27 @@ const BoardTemplate = () => {
                             },
                         }}
                     >
-                        <Title level={5}>{col.title}</Title>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Title level={5}>{col.title}</Title>
+                            <div style={{ paddingBottom: 11 }}>
+                                <Popconfirm
+                                    title="Delete the task"
+                                    description="Are you sure to delete this task?"
+                                    onConfirm={() => deleteColumn(col.id)}
+                                    onCancel={cancel}
+                                    okText="Yes"
+                                    cancelText="No"
+                                >
+                                    <CloseOutlined />
+                                </Popconfirm>
+                            </div>
+                        </div>
                         {/* Hiển thị danh sách task */}
                         {card ? (
                             <div style={{ flex: 1, overflowY: "auto" }}>
@@ -87,16 +115,40 @@ const BoardTemplate = () => {
                             variant="filled"
                             block
                             style={{ marginTop: "8px" }}
-                            onClick={() => handleAddTask(col.id)}
+                            // onClick={() => handleAddTask(col.id)}
                         >
-                            + Add A Card
+                            + Add a Card
                         </Button>
                     </Card>
                 ))}
+                <div>
+                    <Button
+                        color="default"
+                        type="text"
+                        variant="outlined"
+                        block
+                        style={{
+                            backgroundColor: "rgba(255, 255, 255, 0.15)",
+                            backdropFilter: "blur(2px)",
+                            fontSize: 16,
+                            color: "white",
+                        }}
+                        onClick={() => setIsColumnModalOpen(true)}
+                    >
+                        + Add another column
+                    </Button>
+                </div>
             </div>
-
+            {/* Modal thêm column */}
+            <div>
+                <ColumnModal
+                    isColumnModalOpen={isColumnModalOpen}
+                    setIsColumnModalOpen={setIsColumnModalOpen}
+                    boardId={pathName}
+                />
+            </div>
             {/* Modal thêm task */}
-            <Modal
+            {/* <Modal
                 title="Add New Task"
                 open={isModalOpen}
                 onOk={handleOk}
@@ -111,7 +163,7 @@ const BoardTemplate = () => {
                         onChange={(e) => setNewTask(e.target.value)}
                     />
                 </Space>
-            </Modal>
+            </Modal> */}
         </div>
     );
 };

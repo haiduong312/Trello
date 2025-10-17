@@ -25,7 +25,6 @@ declare global {
         id: string;
         board_id: string;
         title: string;
-        sort_order: string;
         created_at: string;
     }
 }

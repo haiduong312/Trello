@@ -4,9 +4,17 @@
     align-items: flex-start;
     gap: 16px;
     padding: 24px;
+
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE và Edge cũ */
+
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Edge mới */
+    }
 }
 
 .column-content {
+    flex: 0 0 270px;
     width: 270px;
     min-height: 90px;
     border-radius: 8px;
@@ -20,4 +28,36 @@
     &:hover {
         border: 1px solid #1677ff;
     }
+}
+
+// board header
+.board-header {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+
+    /* 👇  phần quan trọng nhất: mờ trong suốt */
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+
+    z-index: 10;
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.visibility-tag {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: white;
+}
+.icon {
+    margin-right: 10px;
 }

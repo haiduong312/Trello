@@ -70,7 +70,7 @@ export const boardService = {
         }
         return data || [];
     },
-    async getBoardsById(id: string) {
+    async getBoardsById(id: string): Promise<IBoard> {
         let { data: board, error } = await supabase
             .from("boards")
             .select("*")
@@ -116,7 +116,7 @@ export const columnService = {
             .from("columns")
             .select("*")
             .eq("board_id", boardId)
-            .order("position", { ascending: true });
+            .order("created_at", { ascending: true });
 
         if (error) {
             throw error;
@@ -129,7 +129,10 @@ export const columnService = {
     ): Promise<IColumn> {
         const { data, error } = await supabase
             .from("columns")
-            .insert(column)
+            .insert({
+                board_id: column.board_id,
+                title: column.title,
+            })
             .select()
             .single();
 
@@ -137,5 +140,16 @@ export const columnService = {
             throw error;
         }
         return data;
+    },
+
+    async deleteColumn(columnId: string): Promise<void> {
+        const { error } = await supabase
+            .from("columns")
+            .delete()
+            .eq("id", columnId);
+
+        if (error) {
+            throw error;
+        }
     },
 };
