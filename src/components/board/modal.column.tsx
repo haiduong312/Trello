@@ -1,58 +1,68 @@
 "use client";
 import { useCreateColumn } from "@/libs/react-query/mutation/column.mutation";
-import { Modal, Input, Space, Typography } from "antd";
+import { Modal, Input, Space, Typography, Form, FormProps, Button } from "antd";
 import { useState } from "react";
 interface IProps {
-    isColumnModalOpen: boolean;
-    setIsColumnModalOpen: (v: boolean) => void;
-    boardId: string;
+  isColumnModalOpen: boolean;
+  setIsColumnModalOpen: (v: boolean) => void;
+  boardId: string;
 }
+type FieldType = {
+  title: string;
+};
 const ColumnModal = ({
-    isColumnModalOpen,
-    setIsColumnModalOpen,
-    boardId,
+  isColumnModalOpen,
+  setIsColumnModalOpen,
+  boardId,
 }: IProps) => {
-    const { Text } = Typography;
-    const { mutate } = useCreateColumn();
-    const [newColumn, setNewColumn] = useState<string>("");
-    const handleColumnOk = () => {
-        if (boardId) {
-            mutate(
-                {
-                    board_id: boardId,
-                    title: newColumn,
-                },
-                {
-                    onSuccess: () => {
-                        setNewColumn("");
-                        setIsColumnModalOpen(false);
-                    },
-                }
-            );
+  const [form] = Form.useForm();
+  const { mutate } = useCreateColumn();
+  const handleColumnOk: FormProps<FieldType>["onFinish"] = (values) => {
+    if (boardId) {
+      mutate(
+        {
+          board_id: boardId,
+          title: values.title,
+        },
+        {
+          onSuccess: () => {
+            setIsColumnModalOpen(false);
+          },
         }
-    };
+      );
+    }
+  };
 
-    const handleColumnCancel = () => {
-        setNewColumn("");
-        setIsColumnModalOpen(false);
-    };
-    return (
-        <Modal
-            title="Add another column"
-            open={isColumnModalOpen}
-            onOk={handleColumnOk}
-            onCancel={handleColumnCancel}
-            okText="Add"
+  const handleColumnCancel = () => {
+    form.resetFields();
+    setIsColumnModalOpen(false);
+  };
+  return (
+    <Modal
+      title="Add another column"
+      open={isColumnModalOpen}
+      onCancel={handleColumnCancel}
+      onOk={() => form.submit()}
+      okText="Add"
+    >
+      <Form
+        form={form}
+        name="basic"
+        initialValues={{ remember: true }}
+        onFinish={handleColumnOk}
+        autoComplete="off"
+      >
+        <Form.Item<FieldType>
+          label="Title"
+          name="title"
+          rules={[
+            { required: true, message: "Please input your column name!" },
+          ]}
         >
-            <Space direction="vertical" style={{ width: "100%" }}>
-                <Text>Card Title</Text>
-                <Input
-                    placeholder="Enter column name..."
-                    value={newColumn}
-                    onChange={(e) => setNewColumn(e.target.value)}
-                />
-            </Space>
-        </Modal>
-    );
+          <Input />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
 };
 export default ColumnModal;

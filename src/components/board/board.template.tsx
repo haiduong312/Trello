@@ -20,6 +20,7 @@ import { CloseOutlined } from "@ant-design/icons";
 import React from "react";
 import type { PopconfirmProps } from "antd";
 import { useDeleteColumn } from "@/libs/react-query/mutation/column.mutation";
+import CardModal from "./modal.card";
 
 const { Title, Text } = Typography;
 
@@ -30,6 +31,8 @@ const BoardTemplate = () => {
   console.log("column", column);
   const { data: board, isLoading } = useBoardId(pathName);
   const [isColumnModalOpen, setIsColumnModalOpen] = useState<boolean>(false);
+  const [isCardModalOpen, setIsCardModalOpen] = useState<boolean>(false);
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
   const { mutate: deleteColumn } = useDeleteColumn();
   const card = true;
   if (isLoading || !board) {
@@ -115,10 +118,13 @@ const BoardTemplate = () => {
               variant="filled"
               block
               style={{ marginTop: "8px" }}
-              // onClick={() => handleAddTask(col.id)}
+              onClick={() => {
+                (setActiveColumnId(col.id), setIsCardModalOpen(true));
+              }}
             >
               + Add a Card
             </Button>
+            {/* Modal thêm task */}
           </Card>
         ))}
         <div>
@@ -147,23 +153,13 @@ const BoardTemplate = () => {
           boardId={pathName}
         />
       </div>
-      {/* Modal thêm task */}
-      {/* <Modal
-                title="Add New Task"
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={handleCancel}
-                okText="Add"
-            >
-                <Space direction="vertical" style={{ width: "100%" }}>
-                    <Text>Card Title</Text>
-                    <Input
-                        placeholder="Enter task name..."
-                        value={newTask}
-                        onChange={(e) => setNewTask(e.target.value)}
-                    />
-                </Space>
-            </Modal> */}
+      <div>
+        <CardModal
+          isCardModalOpen={isCardModalOpen}
+          setIsCardModalOpen={setIsCardModalOpen}
+          columnId={activeColumnId}
+        />
+      </div>
     </div>
   );
 };
