@@ -5,7 +5,7 @@ export const useCreateCards = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (
-      card: Omit<ICard, "id" | "created_at" | "updated_at">
+      card: Omit<ICard, "id" | "created_at" | "updated_at" | "description">
     ) => {
       const data = await cardService.createCard(card);
       return data;

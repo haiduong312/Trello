@@ -184,14 +184,13 @@ export const cardService = {
   },
 
   async createCard(
-    card: Omit<ICard, "id" | "created_at" | "updated_at">
+    card: Omit<ICard, "id" | "created_at" | "updated_at" | "description">
   ): Promise<ICard> {
     const { data, error } = await supabase
       .from("cards")
       .insert({
         column_id: card.column_id,
         title: card.title,
-        description: card.description,
       })
       .select()
       .single();
