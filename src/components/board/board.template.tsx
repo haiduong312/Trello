@@ -9,7 +9,6 @@ import "@/components/styles/board.style.scss";
 import BoardHeader from "../header/board.header";
 import React from "react";
 import { useCreateColumn } from "@/libs/react-query/mutation/column.mutation";
-import AddCard from "./add.card";
 import { CloseOutlined } from "@ant-design/icons";
 import {
     DndContext,
@@ -26,7 +25,7 @@ import {
     SortableContext,
 } from "@dnd-kit/sortable";
 import { columnService } from "@/libs/services";
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
+import Column from "./column";
 
 const BoardTemplate = () => {
     // const pointerSensor = useSensor(PointerSensor, {
@@ -55,7 +54,6 @@ const BoardTemplate = () => {
     const [localColumns, setLocalColumns] = useState(columns || []);
 
     useEffect(() => {
-        console.log(columns);
         if (columns) setLocalColumns(columns);
     }, [columns]);
 
@@ -91,6 +89,7 @@ const BoardTemplate = () => {
         return <div>Loading...</div>;
     }
     const handleDragEnd = async (e: DragEndEvent) => {
+        console.log(e);
         const { active, over } = e;
         if (!over) return;
         if (active?.id !== over?.id) {
@@ -120,11 +119,7 @@ const BoardTemplate = () => {
     };
 
     return (
-        <DndContext
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            modifiers={[restrictToHorizontalAxis]}
-        >
+        <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
             <SortableContext
                 items={localColumns.map((col) => col.id)}
                 strategy={horizontalListSortingStrategy}
@@ -144,7 +139,7 @@ const BoardTemplate = () => {
                     </div>
                     <div className="column-container">
                         {localColumns?.map((col) => (
-                            <AddCard
+                            <Column
                                 key={col.id}
                                 col={col}
                                 activeAddCardColumnId={activeAddCardColumnId}
