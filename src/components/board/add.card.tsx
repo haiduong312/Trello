@@ -1,32 +1,44 @@
 "use client";
 
-import { Card, Typography, Button, Popconfirm } from "antd";
-import { CloseOutlined } from "@ant-design/icons";
+import { Card, Typography, Button, Popconfirm, Dropdown, message } from "antd";
+import { CloseOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { useCardsByColumnId } from "@/libs/react-query/query/card.query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "@/components/styles/board.style.scss";
 import { useCreateCards } from "@/libs/react-query/mutation/card.mutation";
-const { Title, Text } = Typography;
-
+import type { MenuProps } from "antd";
+import { useDeleteColumn } from "@/libs/react-query/mutation/column.mutation";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 interface IProps {
-    col: IColumn; // Dữ liệu của từng cột
-    deleteColumn: (columnId: string) => void; // Hàm xóa cột
-    activeAddCardColumnId: string | null; // ID cột đang được mở input thêm card
+    col: IColumn;
+    activeAddCardColumnId: string | null;
     setActiveAddCardColumnId: React.Dispatch<
         React.SetStateAction<string | null>
-    >; // Hàm thay đổi ID cột đang mở input
+    >;
 }
 
 const AddCard = ({
     col,
-    deleteColumn,
     activeAddCardColumnId,
     setActiveAddCardColumnId,
 }: IProps) => {
+    const { attributes, listeners, setNodeRef, transform, transition } =
+        useSortable({ id: col.id, data: { ...col } });
+
+    const style = {
+        touchAction: "none",
+        transform: CSS.Translate.toString(transform),
+        transition,
+    };
+
+    const { Title, Text } = Typography;
     const { data: cards, isLoading } = useCardsByColumnId(col.id);
     const [cardTitle, setCardTitle] = useState("");
     const [loading, setLoading] = useState(false);
     const { mutate: createCard } = useCreateCards();
+    const { mutate: deleteColumn } = useDeleteColumn();
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
     const handleCardOk = async (columnId: string, cardTitle: string) => {
         if (columnId && cardTitle) {
             await createCard(
@@ -47,14 +59,57 @@ const AddCard = ({
         setLoading(true);
         try {
             await handleCardOk(col.id, cardTitle);
-            setCardTitle(""); // ✅ reset input
-            setActiveAddCardColumnId(null); // ✅ đóng form
+            setCardTitle("");
+            setActiveAddCardColumnId(null);
         } catch (err) {
             console.error("Add card failed:", err);
         } finally {
             setLoading(false);
         }
     };
+    const handleClickAddCard = () => {
+        setActiveAddCardColumnId(col.id);
+    };
+    useEffect(() => {
+        if (activeAddCardColumnId === col.id && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [activeAddCardColumnId, col.id]);
+    const handleDeleteColumn = (columnId: string) => {
+        deleteColumn(columnId, {
+            onSuccess: () => {
+                message.success("Delete column successfully 🎉");
+            },
+            onError: () => {
+                message.error("Delete column failed");
+            },
+        });
+    };
+    const items: MenuProps["items"] = [
+        {
+            label: (
+                <a
+                    onClick={() => {
+                        setActiveAddCardColumnId(col.id);
+                        handleClickAddCard();
+                    }}
+                >
+                    Add card
+                </a>
+            ),
+            key: "0",
+        },
+        {
+            label: (
+                <a onClick={() => handleDeleteColumn(col.id)}>Delete column</a>
+            ),
+            key: "1",
+        },
+        {
+            label: "3rd menu item",
+            key: "3",
+        },
+    ];
 
     return (
         <Card
@@ -67,6 +122,10 @@ const AddCard = ({
                     flexDirection: "column",
                 },
             }}
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
         >
             {/* Header của column */}
             <div
@@ -77,15 +136,11 @@ const AddCard = ({
                 }}
             >
                 <Title level={5}>{col.title}</Title>
-                <Popconfirm
-                    title="Delete the task"
-                    description="Are you sure to delete this task?"
-                    onConfirm={() => deleteColumn(col.id)}
-                    okText="Yes"
-                    cancelText="No"
-                >
-                    <CloseOutlined />
-                </Popconfirm>
+                <Dropdown menu={{ items }} trigger={["click"]}>
+                    <EllipsisOutlined
+                        style={{ fontSize: 25, marginBottom: 8 }}
+                    />
+                </Dropdown>
             </div>
 
             {/* Hiển thị danh sách card */}
@@ -117,7 +172,6 @@ const AddCard = ({
                 <div>
                     <Card
                         size="small"
-                        style={{ marginTop: 10 }}
                         styles={{
                             body: {
                                 padding: 8,
@@ -128,6 +182,7 @@ const AddCard = ({
                         className="card"
                     >
                         <textarea
+                            ref={inputRef}
                             placeholder="Please enter your card's title"
                             style={{
                                 border: "none",
@@ -172,8 +227,8 @@ const AddCard = ({
                     color="default"
                     variant="filled"
                     block
-                    style={{ marginTop: "8px" }}
                     onClick={() => setActiveAddCardColumnId(col.id)}
+                    style={{ height: 38 }}
                 >
                     + Add a Card
                 </Button>
