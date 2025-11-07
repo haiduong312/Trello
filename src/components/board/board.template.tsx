@@ -19,7 +19,6 @@ import {
   TouchSensor,
   useSensors,
   DragOverlay,
-  defaultDropAnimation,
   defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import {
@@ -30,7 +29,7 @@ import {
 import { columnService } from "@/libs/services";
 import Column from "./column";
 import CardItem from "./card";
-import { useCardsByColumnId } from "@/libs/react-query/query/card.query";
+import { useCardsByBoardId } from "@/libs/react-query/query/card.query";
 
 const BoardTemplate = () => {
   // const pointerSensor = useSensor(PointerSensor, {
@@ -49,6 +48,7 @@ const BoardTemplate = () => {
   const pathName = currentPathName.split("/board/")[1];
   const { data: columns } = useColumnById(pathName);
   const { data: board, isLoading } = useBoardId(pathName);
+  const { data: cards } = useCardsByBoardId(pathName);
   const [activeAddCardColumnId, setActiveAddCardColumnId] = useState<
     string | null
   >(null);
@@ -57,6 +57,7 @@ const BoardTemplate = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { mutate: createColumn } = useCreateColumn();
   const [localColumns, setLocalColumns] = useState(columns || []);
+  const [localCards, setLocalCards] = useState<ICard[]>(cards || []);
   const [activeDragType, setActiveDragType] = useState<
     "column" | "card" | null
   >(null);
@@ -68,7 +69,9 @@ const BoardTemplate = () => {
   useEffect(() => {
     if (columns) setLocalColumns(columns);
   }, [columns]);
-
+  useEffect(() => {
+    if (cards) setLocalCards(cards);
+  }, [cards]);
   const handleColumnOk = async (boardId: string, cardTitle: string) => {
     if (boardId && cardTitle) {
       await createColumn(
@@ -100,7 +103,6 @@ const BoardTemplate = () => {
   if (isLoading || !board) {
     return <div>Loading...</div>;
   }
-
   const handleDragStart = (e: DragEndEvent) => {
     const type = e.active.data.current?.type;
     setActiveDragType(type || null);
@@ -142,72 +144,6 @@ const BoardTemplate = () => {
       }
     }
 
-    // if (activeDragType === "card") {
-    //   const activeCard = activeDragCardData;
-    //   if (!activeCard) return;
-
-    //   // Tìm column mà card được thả vào
-    //   const targetColumnId = over.data.current?.columnId;
-    //   if (!targetColumnId) return;
-
-    //   // Nếu card được di chuyển giữa hai column
-    //   if (activeCard.column_id !== targetColumnId) {
-    //     // Xoá khỏi column cũ và thêm vào column mới
-    //     const newColumns = localColumns.map((col) => {
-    //       if (col.id === activeCard.column_id) {
-    //         return {
-    //           ...col,
-    //           cards: col.cards.filter((c) => c.id !== activeCard.id),
-    //         };
-    //       }
-    //       if (col.id === targetColumnId) {
-    //         return {
-    //           ...col,
-    //           cards: [
-    //             ...col.cards,
-    //             { ...activeCard, column_id: targetColumnId },
-    //           ],
-    //         };
-    //       }
-    //       return col;
-    //     });
-
-    //     setLocalColumns(newColumns);
-
-    //     try {
-    //       await cardService.updateCardColumn(activeCard.id, targetColumnId);
-    //     } catch (err) {
-    //       console.error("Lỗi khi cập nhật column của card:", err);
-    //     }
-    //   } else {
-    //     // Nếu card chỉ đổi vị trí trong cùng column
-    //     const column = localColumns.find((c) => c.id === activeCard.column_id);
-    //     if (!column) return;
-
-    //     const oldIndex = column.cards.findIndex((c) => c.id === active.id);
-    //     const newIndex = column.cards.findIndex((c) => c.id === over.id);
-
-    //     const reorderedCards = arrayMove(column.cards, oldIndex, newIndex);
-
-    //     const newColumns = localColumns.map((c) =>
-    //       c.id === column.id ? { ...c, cards: reorderedCards } : c
-    //     );
-
-    //     setLocalColumns(newColumns);
-
-    //     // Gửi RPC cập nhật vị trí card
-    //     const updatedPositions = reorderedCards.map((card, index) => ({
-    //       id: card.id,
-    //       position: index + 1,
-    //     }));
-
-    //     try {
-    //       await cardService.updateCardPositions(updatedPositions);
-    //     } catch (err) {
-    //       console.error("Lỗi khi cập nhật vị trí card:", err);
-    //       setLocalColumns(localColumns); // rollback
-    //     }
-    //   }
     setActiveDragType(null);
     setActiveDragColumnData(null);
     setActiveDragCardData(null);
@@ -251,6 +187,7 @@ const BoardTemplate = () => {
                 <Column
                   key={col.id}
                   col={col}
+                  cards={localCards.filter((card) => card.column_id === col.id)}
                   activeAddCardColumnId={activeAddCardColumnId}
                   setActiveAddCardColumnId={setActiveAddCardColumnId}
                   activeDragType={activeDragType}
@@ -263,6 +200,9 @@ const BoardTemplate = () => {
                     activeAddCardColumnId={null}
                     setActiveAddCardColumnId={() => {}}
                     activeDragType="column"
+                    cards={localCards.filter(
+                      (card) => card.column_id === activeDragColumnData.id
+                    )}
                   />
                 )}
                 {activeDragType === "card" && activeDragCardData && (

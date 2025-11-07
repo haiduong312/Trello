@@ -1,8 +1,7 @@
 "use client";
 
-import { Card, Typography, Button, Popconfirm, Dropdown, message } from "antd";
+import { Card, Typography, Button, Dropdown, message } from "antd";
 import { CloseOutlined, EllipsisOutlined } from "@ant-design/icons";
-import { useCardsByColumnId } from "@/libs/react-query/query/card.query";
 import { useEffect, useRef, useState } from "react";
 import "@/components/styles/board.style.scss";
 import { useCreateCards } from "@/libs/react-query/mutation/card.mutation";
@@ -13,13 +12,6 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  DragEndEvent,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import CardItem from "./card";
 interface IProps {
@@ -27,6 +19,7 @@ interface IProps {
   activeAddCardColumnId: string | null;
   setActiveAddCardColumnId: (v: string | null) => void;
   activeDragType: "column" | "card" | null;
+  cards: ICard[];
 }
 
 const Column = ({
@@ -34,6 +27,7 @@ const Column = ({
   activeAddCardColumnId,
   setActiveAddCardColumnId,
   activeDragType,
+  cards,
 }: IProps) => {
   const {
     attributes,
@@ -50,30 +44,13 @@ const Column = ({
     transition,
     opacity: isDragging ? 0.5 : undefined,
   };
-  // const pointerSensor = useSensor(PointerSensor, {
-  //     activationConstraint: { distance: 10 },
-  // });
-  const mouseSensor = useSensor(MouseSensor, {
-    activationConstraint: { distance: 10 },
-  });
-  const touchSensor = useSensor(TouchSensor, {
-    activationConstraint: { delay: 200, tolerance: 5 },
-  });
 
-  // ưu tiên sử dụng 2 loại sensors (mouse, touch) để có trải nghiệm mobile tốt nhất, tránh bị bug
-  const sensors = useSensors(mouseSensor, touchSensor);
   const { Title, Text } = Typography;
-  const { data: cards } = useCardsByColumnId(col.id);
   const [cardTitle, setCardTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const { mutate: createCard } = useCreateCards();
   const { mutate: deleteColumn } = useDeleteColumn();
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const [localCards, setLocalCards] = useState<ICard[]>(cards || []);
-
-  useEffect(() => {
-    if (cards) setLocalCards(cards);
-  }, [cards]);
   const handleCardOk = async (columnId: string, cardTitle: string) => {
     if (columnId && cardTitle) {
       await createCard(
@@ -138,14 +115,8 @@ const Column = ({
       label: <a onClick={() => handleDeleteColumn(col.id)}>Delete column</a>,
       key: "1",
     },
-    {
-      label: "3rd menu item",
-      key: "3",
-    },
   ];
-  const handleDragEnd = async (e: DragEndEvent) => {
-    console.log(e);
-  };
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card
@@ -182,10 +153,11 @@ const Column = ({
             maxHeight: 600,
             pointerEvents: activeDragType === "column" ? "none" : "auto",
           }}
+          className="custom-scrollbar"
         >
           {activeDragType === "column" ? (
             <div>
-              {localCards?.map((card) => (
+              {cards?.map((card) => (
                 <Card
                   key={card.id}
                   size="small"

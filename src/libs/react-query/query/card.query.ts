@@ -8,3 +8,11 @@ export const useCardsByColumnId = (columnId: string) => {
     enabled: !!columnId,
   });
 };
+
+export const useCardsByBoardId = (boardId: string) => {
+  return useQuery({
+    queryKey: ["cards", boardId],
+    queryFn: () => cardService.getCardsByBoardId(boardId),
+    enabled: !!boardId,
+  });
+};

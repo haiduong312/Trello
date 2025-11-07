@@ -192,6 +192,27 @@ export const cardService = {
     }
     return data || [];
   },
+  async getCardsByBoardId(boardId: string): Promise<ICard[]> {
+    const columns = await columnService.getColumns(boardId);
+    const columnIds = columns.map((c) => c.id);
+
+    if (columnIds.length === 0) return [];
+
+    let allCards: ICard[] = [];
+
+    for (const columnId of columnIds) {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("*")
+        .eq("column_id", columnId)
+        .order("position", { ascending: true });
+
+      if (error) throw error;
+      allCards = allCards.concat(data || []);
+    }
+
+    return allCards;
+  },
 
   async createCard(
     card: Omit<ICard, "id" | "created_at" | "updated_at" | "description">
