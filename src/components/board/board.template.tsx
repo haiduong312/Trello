@@ -18,6 +18,9 @@ import {
   MouseSensor,
   TouchSensor,
   useSensors,
+  DragOverlay,
+  defaultDropAnimation,
+  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -26,6 +29,8 @@ import {
 } from "@dnd-kit/sortable";
 import { columnService } from "@/libs/services";
 import Column from "./column";
+import CardItem from "./card";
+import { useCardsByColumnId } from "@/libs/react-query/query/card.query";
 
 const BoardTemplate = () => {
   // const pointerSensor = useSensor(PointerSensor, {
@@ -52,7 +57,14 @@ const BoardTemplate = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { mutate: createColumn } = useCreateColumn();
   const [localColumns, setLocalColumns] = useState(columns || []);
-
+  const [activeDragType, setActiveDragType] = useState<
+    "column" | "card" | null
+  >(null);
+  const [activeDragColumnData, setActiveDragColumnData] =
+    useState<IColumn | null>(null);
+  const [activeDragCardData, setActiveDragCardData] = useState<ICard | null>(
+    null
+  );
   useEffect(() => {
     if (columns) setLocalColumns(columns);
   }, [columns]);
@@ -88,38 +100,134 @@ const BoardTemplate = () => {
   if (isLoading || !board) {
     return <div>Loading...</div>;
   }
+
+  const handleDragStart = (e: DragEndEvent) => {
+    const type = e.active.data.current?.type;
+    setActiveDragType(type || null);
+    if (e.active.data.current) {
+      setActiveDragColumnData(e.active.data.current as IColumn);
+      setActiveDragCardData(e.active.data.current as ICard);
+    } else {
+      setActiveDragColumnData(null);
+    }
+  };
   const handleDragEnd = async (e: DragEndEvent) => {
     console.log(e);
     const { active, over } = e;
     if (!over) return;
-    if (active?.id !== over?.id) {
-      // Lấy vị trí cũ từ active
-      const oldIndex = localColumns.findIndex((c) => c.id === active.id);
+    if (activeDragType === "column") {
+      if (active?.id !== over?.id) {
+        // Lấy vị trí cũ từ active
+        const oldIndex = localColumns.findIndex((c) => c.id === active.id);
 
-      // Lấy vị trí mới từ active
-      const newIndex = localColumns.findIndex((c) => c.id === over?.id);
+        // Lấy vị trí mới từ active
+        const newIndex = localColumns.findIndex((c) => c.id === over?.id);
 
-      const reordered = arrayMove(localColumns, oldIndex, newIndex);
-      setLocalColumns(reordered);
+        const reordered = arrayMove(localColumns, oldIndex, newIndex);
+        setLocalColumns(reordered);
 
-      // Gọi RPC cập nhật DB
-      const updatedPositions = reordered.map((col, index) => ({
-        id: col.id,
-        position: index + 1,
-      }));
+        // Gọi RPC cập nhật DB
+        const updatedPositions = reordered.map((col, index) => ({
+          id: col.id,
+          position: index + 1,
+        }));
 
-      try {
-        await columnService.updateColumnPositions(updatedPositions);
-      } catch (err) {
-        console.error("Lỗi khi cập nhật vị trí:", err);
-        // rollback UI nếu cần
-        setLocalColumns(localColumns);
+        try {
+          await columnService.updateColumnPositions(updatedPositions);
+        } catch (err) {
+          console.error("Lỗi khi cập nhật vị trí:", err);
+          // rollback UI nếu cần
+          setLocalColumns(localColumns);
+        }
       }
     }
+
+    // if (activeDragType === "card") {
+    //   const activeCard = activeDragCardData;
+    //   if (!activeCard) return;
+
+    //   // Tìm column mà card được thả vào
+    //   const targetColumnId = over.data.current?.columnId;
+    //   if (!targetColumnId) return;
+
+    //   // Nếu card được di chuyển giữa hai column
+    //   if (activeCard.column_id !== targetColumnId) {
+    //     // Xoá khỏi column cũ và thêm vào column mới
+    //     const newColumns = localColumns.map((col) => {
+    //       if (col.id === activeCard.column_id) {
+    //         return {
+    //           ...col,
+    //           cards: col.cards.filter((c) => c.id !== activeCard.id),
+    //         };
+    //       }
+    //       if (col.id === targetColumnId) {
+    //         return {
+    //           ...col,
+    //           cards: [
+    //             ...col.cards,
+    //             { ...activeCard, column_id: targetColumnId },
+    //           ],
+    //         };
+    //       }
+    //       return col;
+    //     });
+
+    //     setLocalColumns(newColumns);
+
+    //     try {
+    //       await cardService.updateCardColumn(activeCard.id, targetColumnId);
+    //     } catch (err) {
+    //       console.error("Lỗi khi cập nhật column của card:", err);
+    //     }
+    //   } else {
+    //     // Nếu card chỉ đổi vị trí trong cùng column
+    //     const column = localColumns.find((c) => c.id === activeCard.column_id);
+    //     if (!column) return;
+
+    //     const oldIndex = column.cards.findIndex((c) => c.id === active.id);
+    //     const newIndex = column.cards.findIndex((c) => c.id === over.id);
+
+    //     const reorderedCards = arrayMove(column.cards, oldIndex, newIndex);
+
+    //     const newColumns = localColumns.map((c) =>
+    //       c.id === column.id ? { ...c, cards: reorderedCards } : c
+    //     );
+
+    //     setLocalColumns(newColumns);
+
+    //     // Gửi RPC cập nhật vị trí card
+    //     const updatedPositions = reorderedCards.map((card, index) => ({
+    //       id: card.id,
+    //       position: index + 1,
+    //     }));
+
+    //     try {
+    //       await cardService.updateCardPositions(updatedPositions);
+    //     } catch (err) {
+    //       console.error("Lỗi khi cập nhật vị trí card:", err);
+    //       setLocalColumns(localColumns); // rollback
+    //     }
+    //   }
+    setActiveDragType(null);
+    setActiveDragColumnData(null);
+    setActiveDragCardData(null);
   };
 
+  const dropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          opacity: "0.5",
+        },
+      },
+    }),
+  };
   return (
-    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
+    <DndContext
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+      onDragStart={handleDragStart}
+    >
       <SortableContext
         items={localColumns.map((col) => col.id)}
         strategy={horizontalListSortingStrategy}
@@ -145,8 +253,22 @@ const BoardTemplate = () => {
                   col={col}
                   activeAddCardColumnId={activeAddCardColumnId}
                   setActiveAddCardColumnId={setActiveAddCardColumnId}
+                  activeDragType={activeDragType}
                 />
               ))}
+              <DragOverlay dropAnimation={dropAnimation}>
+                {activeDragType === "column" && activeDragColumnData && (
+                  <Column
+                    col={activeDragColumnData}
+                    activeAddCardColumnId={null}
+                    setActiveAddCardColumnId={() => {}}
+                    activeDragType="column"
+                  />
+                )}
+                {activeDragType === "card" && activeDragCardData && (
+                  <CardItem card={activeDragCardData} activeDragType="card" />
+                )}
+              </DragOverlay>
 
               <div style={{ marginTop: 0 }}>
                 {activeAddColumn ? (
