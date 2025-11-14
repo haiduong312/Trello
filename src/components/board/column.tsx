@@ -14,6 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import CardItem from "./card";
+import EmptyDropZone from "./empty.dropzone";
 interface IProps {
     col: IColumn;
     activeAddCardColumnId: string | null;
@@ -185,16 +186,24 @@ const Column = ({
                         </div>
                     ) : (
                         <SortableContext
-                            items={cards?.map((card) => card.id) ?? []}
+                            items={
+                                cards.length > 0
+                                    ? cards.map((card) => card.id)
+                                    : [`empty-${col.id}`] // có vùng ảo khi rỗng
+                            }
                             strategy={verticalListSortingStrategy}
                         >
-                            {cards?.map((card) => (
-                                <CardItem
-                                    key={card.id}
-                                    card={card}
-                                    activeDragType={activeDragType}
-                                />
-                            ))}
+                            {cards.length > 0 ? (
+                                cards.map((card) => (
+                                    <CardItem
+                                        key={card.id}
+                                        card={card}
+                                        activeDragType={activeDragType}
+                                    />
+                                ))
+                            ) : (
+                                <EmptyDropZone column={col} /> // 👈 vùng drop ảo
+                            )}
                         </SortableContext>
                     )}
                 </div>

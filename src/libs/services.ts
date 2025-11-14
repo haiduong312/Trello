@@ -227,7 +227,10 @@ export const cardService = {
     },
 
     async createCard(
-        card: Omit<ICard, "id" | "created_at" | "updated_at" | "description">
+        card: Omit<
+            ICard,
+            "id" | "created_at" | "updated_at" | "description" | "position"
+        >
     ): Promise<ICard> {
         const { data, error } = await supabase
             .from("cards")
@@ -263,5 +266,26 @@ export const cardService = {
         });
 
         if (error) throw error;
+    },
+    async updateCard(
+        id: string,
+        updates: Partial<
+            Pick<ICard, "title" | "description" | "column_id" | "position">
+        >
+    ): Promise<ICard> {
+        const { data, error } = await supabase
+            .from("cards")
+            .update({
+                ...updates,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+        return data;
     },
 };
