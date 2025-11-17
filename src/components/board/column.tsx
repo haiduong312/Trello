@@ -160,41 +160,45 @@ const Column = ({
                         flex: 1,
                         overflowY: "auto",
                         maxHeight: "500px",
-                        pointerEvents:
-                            activeDragType === "column" ? "none" : "auto",
                     }}
                     className="custom-scrollbar"
                 >
                     {activeDragType === "column" ? (
                         <div>
-                            {cards?.map((card) => (
-                                <Card
-                                    key={card.id}
-                                    size="small"
-                                    styles={{
-                                        body: {
-                                            padding: 8,
-                                            background: "rgb(0 0 0 / 4%)",
-                                            borderRadius: 8,
-                                        },
-                                    }}
-                                    className="card"
-                                >
-                                    <Text>{card.title}</Text>
-                                </Card>
-                            ))}
+                            {cards.length > 0 ? (
+                                cards.map((card) => (
+                                    // truyền disabled cho CardItem để nó biết không cho drag khi đang kéo column
+                                    <Card
+                                        key={card.id}
+                                        size="small"
+                                        styles={{
+                                            body: {
+                                                padding: 8,
+                                                background: "rgb(0 0 0 / 4%)",
+                                                borderRadius: 8,
+                                            },
+                                        }}
+                                        className="card"
+                                    >
+                                        <Text>{card.title}</Text>
+                                    </Card>
+                                ))
+                            ) : (
+                                <EmptyDropZone column={col} />
+                            )}
                         </div>
                     ) : (
                         <SortableContext
                             items={
                                 cards.length > 0
-                                    ? cards.map((card) => card.id)
-                                    : [`empty-${col.id}`] // có vùng ảo khi rỗng
+                                    ? cards.map((c) => c.id)
+                                    : [`empty-${col.id}`]
                             }
                             strategy={verticalListSortingStrategy}
                         >
                             {cards.length > 0 ? (
                                 cards.map((card) => (
+                                    // truyền disabled cho CardItem để nó biết không cho drag khi đang kéo column
                                     <CardItem
                                         key={card.id}
                                         card={card}
@@ -202,7 +206,7 @@ const Column = ({
                                     />
                                 ))
                             ) : (
-                                <EmptyDropZone column={col} /> // 👈 vùng drop ảo
+                                <EmptyDropZone column={col} />
                             )}
                         </SortableContext>
                     )}

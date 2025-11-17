@@ -21,7 +21,7 @@ const transition: Transition = {
 // Path SVG gốc nhưng scale nhỏ để vừa card 236x38
 const pathD = `M 10 10 C 40 10 70 25 110 25 C 150 25 180 15 225 15`;
 
-const MotionLottie = () => {
+export const MotionLottie = () => {
     return (
         <motion.div
             style={{
