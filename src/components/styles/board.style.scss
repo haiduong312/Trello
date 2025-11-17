@@ -45,6 +45,11 @@
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+@media (min-width: 1400px) {
+  .custom-scrollbar {
+    max-height: 600px;
+  }
+}
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
