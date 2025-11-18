@@ -21,6 +21,8 @@ import {
   defaultDropAnimationSideEffects,
   DragStartEvent,
   closestCorners,
+  CollisionDetection,
+  pointerWithin,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -31,6 +33,7 @@ import { cardService, columnService } from "@/libs/services";
 import Column from "./column";
 import { useCardsByBoardId } from "@/libs/react-query/query/card.query";
 import CardItem from "./card";
+import { HashLoader } from "react-spinners";
 
 const BoardTemplate = () => {
   const mouseSensor = useSensor(MouseSensor, {
@@ -100,8 +103,24 @@ const BoardTemplate = () => {
     }
   };
   if (isLoading || !board) {
-    return <div>Loading...</div>;
+    return (
+      <HashLoader
+        size={100}
+        color="#1677FF"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      />
+    );
   }
+  const resetState = () => {
+    setActiveDragType(null);
+    setActiveDragColumnData(null);
+    setActiveDragCardData(null);
+    setOldColumnId(null);
+  };
   const handleDragStart = (e: DragStartEvent) => {
     const type = e.active.data.current?.type;
     setActiveDragType(type);
@@ -112,17 +131,13 @@ const BoardTemplate = () => {
       setActiveDragCardData(e?.active?.data?.current?.data as ICard);
       setOldColumnId(e?.active?.data?.current?.data.column_id);
     } else {
-      setActiveDragType(null);
-      setActiveDragColumnData(null);
-      setActiveDragCardData(null);
-      setOldColumnId(null);
+      resetState();
     }
   };
 
   const handleDragEnd = async (e: DragEndEvent) => {
     const { active, over } = e;
     if (!over) return;
-
     if (activeDragType === "column") {
       if (active?.id === over?.id) {
         setActiveDragType(null);
@@ -162,144 +177,145 @@ const BoardTemplate = () => {
       return;
     }
 
-    if (activeDragType !== "card") return;
+    if (activeDragType === "card") {
+      const activeCardId = active.id;
+      const overCardId = over.id;
+      if (activeCardId === overCardId) {
+        resetState();
+        return;
+      }
+      const activeCard = localCards.find((c) => c.id === activeCardId);
+      if (!activeCard) return;
+      // const oldColumnId = activeCard.column_id;
+      let newColumnId = null;
 
-    const activeCardId = active.id;
-    const overCardId = over.id;
+      const overType = over.data.current?.type;
+      const overData = over.data.current?.data;
 
-    const activeCard = localCards.find((c) => c.id === activeCardId);
-    if (!activeCard) return;
-    // const oldColumnId = activeCard.column_id;
-    let newColumnId = null;
-
-    const overType = over.data.current?.type;
-    const overData = over.data.current?.data;
-
-    // Nếu kéo thả lên 1 card
-    if (overType === "card") {
-      newColumnId = overData.column_id;
-    }
-
-    // Nếu kéo thả lên 1 column (vào vùng trống)
-    if (overType === "column") {
-      newColumnId = overData.id;
-    }
-
-    // ===================== //
-    // === DI CHUYỂN CỘT === //
-    // ===================== //
-
-    if (oldColumnId !== newColumnId) {
-      // Card trong column cũ
-      const oldColumnCards = localCards
-        .filter((c) => c.column_id === oldColumnId)
-        .sort((a, b) => a.position - b.position);
-
-      // Card trong column mới
-      const newColumnCards = localCards
-        .filter((c) => c.column_id === newColumnId)
-        .sort((a, b) => a.position - b.position);
-
-      // Xóa card khỏi column cũ
-      const oldIndex = oldColumnCards.findIndex((c) => c.id === activeCardId);
-      oldColumnCards.splice(oldIndex, 1);
-
-      // Tính vị trí mới
-      let newIndex = 0;
-      if (overCardId) {
-        newIndex = newColumnCards.findIndex((c) => c.id === overCardId);
-        if (newIndex === -1) newIndex = newColumnCards.length;
+      // Nếu kéo thả lên 1 card
+      if (overType === "card") {
+        newColumnId = overData.column_id;
       }
 
-      // Thêm card vào column mới tại vị trí mới
-      newColumnCards.splice(newIndex, 0, {
-        ...activeCard,
-        column_id: newColumnId as string,
-      });
+      // Nếu kéo thả lên 1 column (vào vùng trống)
+      if (overType === "column") {
+        newColumnId = overData?.id;
+      }
+      if (!newColumnId) {
+        resetState();
+        return;
+      }
 
-      // Rebuild position
-      const updatedOldCol = oldColumnCards.map((c, i) => ({
-        ...c,
-        position: i + 1,
-      }));
+      if (oldColumnId !== newColumnId) {
+        // ===================== //
+        // === DI CHUYỂN CỘT === //
+        // ===================== //
 
-      const updatedNewCol = newColumnCards.map((c, i) => ({
-        ...c,
-        position: i + 1,
-      }));
+        // Card trong column cũ
+        const oldColumnCards = localCards
+          .filter((c) => c.column_id === oldColumnId)
+          .sort((a, b) => a.position - b.position);
 
-      // Set lại local state
-      const newLocalCards = [
-        ...localCards.filter(
-          (c) => c.column_id !== oldColumnId && c.column_id !== newColumnId
-        ),
-        ...updatedOldCol,
-        ...updatedNewCol,
-      ];
+        // Card trong column mới
+        const newColumnCards = localCards
+          .filter((c) => c.column_id === newColumnId)
+          .sort((a, b) => a.position - b.position);
 
-      setLocalCards(newLocalCards);
+        // Xóa card khỏi column cũ
+        const oldIndex = oldColumnCards.findIndex((c) => c.id === activeCardId);
+        oldColumnCards.splice(oldIndex, 1);
 
-      // Update DB
-      try {
-        // 1. Update column_id cho card
-        await cardService.updateCard(activeCardId as string, {
+        // Tính vị trí mới
+        let newIndex = 0;
+        if (overCardId) {
+          newIndex = newColumnCards.findIndex((c) => c.id === overCardId);
+          if (newIndex === -1) newIndex = newColumnCards.length;
+        }
+
+        // Thêm card vào column mới tại vị trí mới
+        newColumnCards.splice(newIndex, 0, {
+          ...activeCard,
           column_id: newColumnId as string,
         });
 
-        // 2. Update vị trí của cả hai column
-        await cardService.updateCardPositions([
-          ...updatedOldCol.map((c) => ({
-            id: c.id,
-            position: c.position,
-            column_id: c.column_id,
-          })),
-          ...updatedNewCol.map((c) => ({
-            id: c.id,
-            position: c.position,
-            column_id: c.column_id,
-          })),
-        ]);
-      } catch (err) {
-        console.error("Lỗi update column & position:", err);
-      } finally {
-        // reset trạng thái drag ở mọi trường hợp
-        setActiveDragType(null);
-        setActiveDragColumnData(null);
-        setActiveDragCardData(null);
-        setOldColumnId(null);
+        // Rebuild position
+        const updatedOldCol = oldColumnCards.map((c, i) => ({
+          ...c,
+          position: i + 1,
+        }));
+
+        const updatedNewCol = newColumnCards.map((c, i) => ({
+          ...c,
+          position: i + 1,
+        }));
+
+        // Set lại local state
+        const newLocalCards = [
+          ...localCards.filter(
+            (c) => c.column_id !== oldColumnId && c.column_id !== newColumnId
+          ),
+          ...updatedOldCol,
+          ...updatedNewCol,
+        ];
+
+        setLocalCards(newLocalCards);
+
+        // Update DB
+        try {
+          // 1. Update column_id cho card
+          await cardService.updateCard(activeCardId as string, {
+            column_id: newColumnId as string,
+          });
+
+          // 2. Update vị trí của cả hai column
+          await cardService.updateCardPositions([
+            ...updatedOldCol.map((c) => ({
+              id: c.id,
+              position: c.position,
+              column_id: c.column_id,
+            })),
+            ...updatedNewCol.map((c) => ({
+              id: c.id,
+              position: c.position,
+              column_id: c.column_id,
+            })),
+          ]);
+        } catch (err) {
+          console.error("Lỗi update column & position:", err);
+        } finally {
+          // reset trạng thái drag ở mọi trường hợp
+          resetState();
+        }
+
+        return;
       }
 
-      return;
-    }
+      // ============================= //
+      // === DI CHUYỂN TRONG COLUMN === //
+      // ============================= //
 
-    // ============================= //
-    // === DI CHUYỂN TRONG COLUMN === //
-    // ============================= //
+      if (!over || active.id === over.id) return;
 
-    if (!over || active.id === over.id) return;
+      const oldIndex = localCards.findIndex((c) => c.id === active.id);
+      const newIndex = localCards.findIndex((c) => c.id === over.id);
 
-    const oldIndex = localCards.findIndex((c) => c.id === active.id);
-    const newIndex = localCards.findIndex((c) => c.id === over.id);
+      const reordered = arrayMove(localCards, oldIndex, newIndex);
+      setLocalCards(reordered);
 
-    const reordered = arrayMove(localCards, oldIndex, newIndex);
-    setLocalCards(reordered);
+      const updatedPositions = reordered.map((card, index) => ({
+        id: card.id,
+        position: index + 1,
+        column_id: card.column_id,
+      }));
 
-    const updatedPositions = reordered.map((card, index) => ({
-      id: card.id,
-      position: index + 1,
-      column_id: card.column_id,
-    }));
-
-    try {
-      await cardService.updateCardPositions(updatedPositions);
-    } catch (err) {
-      console.error("Lỗi update vị trí:", err);
-    } finally {
-      // reset trạng thái drag ở mọi trường hợp
-      setActiveDragType(null);
-      setActiveDragColumnData(null);
-      setActiveDragCardData(null);
-      setOldColumnId(null);
+      try {
+        await cardService.updateCardPositions(updatedPositions);
+      } catch (err) {
+        console.error("Lỗi update vị trí:", err);
+      } finally {
+        // reset trạng thái drag ở mọi trường hợp
+        resetState();
+      }
     }
     return;
   };
@@ -313,12 +329,23 @@ const BoardTemplate = () => {
       },
     }),
   };
+  const customCollisionDetection: CollisionDetection = (args) => {
+    // Detects collisions based on the pointer position
+    const pointerCollisions = pointerWithin(args);
+
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+
+    // Falls back to detecting collisions based on closest corners
+    return closestCorners(args);
+  };
   return (
     <DndContext
       onDragEnd={handleDragEnd}
       sensors={sensors}
       onDragStart={handleDragStart}
-      collisionDetection={closestCorners}
+      collisionDetection={customCollisionDetection}
     >
       <SortableContext
         items={localColumns.map((col) => col.id)}
