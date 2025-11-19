@@ -229,7 +229,12 @@ export const cardService = {
     async createCard(
         card: Omit<
             ICard,
-            "id" | "created_at" | "updated_at" | "description" | "position"
+            | "id"
+            | "created_at"
+            | "updated_at"
+            | "description"
+            | "position"
+            | "comment"
         >
     ): Promise<ICard> {
         const { data, error } = await supabase
@@ -247,17 +252,6 @@ export const cardService = {
         return data;
     },
 
-    async deleteColumn(columnId: string): Promise<void> {
-        const { error } = await supabase
-            .from("columns")
-            .delete()
-            .eq("id", columnId);
-
-        if (error) {
-            throw error;
-        }
-    },
-
     async updateCardPositions(
         positions: { id: string; position: number; column_id: string }[]
     ): Promise<void> {
@@ -270,7 +264,10 @@ export const cardService = {
     async updateCard(
         id: string,
         updates: Partial<
-            Pick<ICard, "title" | "description" | "column_id" | "position">
+            Pick<
+                ICard,
+                "title" | "description" | "column_id" | "position" | "comment"
+            >
         >
     ): Promise<ICard> {
         const { data, error } = await supabase

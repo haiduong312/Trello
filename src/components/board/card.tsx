@@ -7,9 +7,17 @@ import { CSS } from "@dnd-kit/utilities";
 interface IProps {
     card: ICard;
     activeDragType: "column" | "card" | null;
+    isCardModalOpen: boolean;
+    setIsCardModalOpen: (v: boolean) => void;
+    setSelectedCard: (v: ICard) => void;
 }
 
-const CardItem = ({ card, activeDragType }: IProps) => {
+const CardItem = ({
+    card,
+    activeDragType,
+    setIsCardModalOpen,
+    setSelectedCard,
+}: IProps) => {
     if (!card) return null;
     const {
         attributes,
@@ -47,6 +55,10 @@ const CardItem = ({ card, activeDragType }: IProps) => {
             {...attributes}
             {...listeners}
             className="card"
+            onClick={() => {
+                setIsCardModalOpen(true);
+                setSelectedCard(card);
+            }}
         >
             <Text>{card.title}</Text>
         </Card>

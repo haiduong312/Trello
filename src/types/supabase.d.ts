@@ -27,6 +27,13 @@ declare global {
         title: string;
         created_at: string;
     }
+    interface IComment {
+        id: string;
+        card_id: string;
+        content: string;
+        created_at: Date;
+        user_id?: string;
+    }
 
     interface ICard {
         id: string;
@@ -36,5 +43,6 @@ declare global {
         created_at: Date;
         updated_at: Date;
         position: number;
+        comment: IComment[];
     }
 }

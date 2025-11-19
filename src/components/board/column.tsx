@@ -2,7 +2,7 @@
 
 import { Card, Typography, Button, Dropdown, message } from "antd";
 import { CloseOutlined, EllipsisOutlined } from "@ant-design/icons";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "@/components/styles/board.style.scss";
 import { useCreateCards } from "@/libs/react-query/mutation/card.mutation";
 import type { MenuProps } from "antd";
@@ -15,6 +15,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import CardItem from "./card";
 import EmptyDropZone from "./empty.dropzone";
+import CardModal from "./modal.card";
 interface IProps {
     col: IColumn;
     activeAddCardColumnId: string | null;
@@ -53,6 +54,8 @@ const Column = ({
     const { Title, Text } = Typography;
     const [cardTitle, setCardTitle] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isCardModalOpen, setIsCardModalOpen] = useState<boolean>(false);
+    const [selectedCard, setSelectedCard] = useState<ICard | null>(null);
     const { mutate: createCard } = useCreateCards();
     const { mutate: deleteColumn } = useDeleteColumn();
     const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -95,7 +98,7 @@ const Column = ({
     const handleDeleteColumn = (columnId: string) => {
         deleteColumn(columnId, {
             onSuccess: () => {
-                message.success("Delete column successfully 🎉");
+                message.success("Delete column successfully");
             },
             onError: () => {
                 message.error("Delete column failed");
@@ -167,7 +170,6 @@ const Column = ({
                         <div>
                             {cards.length > 0 ? (
                                 cards.map((card) => (
-                                    // truyền disabled cho CardItem để nó biết không cho drag khi đang kéo column
                                     <Card
                                         key={card.id}
                                         size="small"
@@ -197,14 +199,38 @@ const Column = ({
                             strategy={verticalListSortingStrategy}
                         >
                             {cards.length > 0 ? (
-                                cards.map((card) => (
-                                    // truyền disabled cho CardItem để nó biết không cho drag khi đang kéo column
-                                    <CardItem
-                                        key={card.id}
-                                        card={card}
-                                        activeDragType={activeDragType}
-                                    />
-                                ))
+                                cards.map((card) => {
+                                    return (
+                                        <Fragment key={card.id}>
+                                            <CardItem
+                                                key={card.id}
+                                                card={card}
+                                                activeDragType={activeDragType}
+                                                isCardModalOpen={
+                                                    isCardModalOpen
+                                                }
+                                                setIsCardModalOpen={
+                                                    setIsCardModalOpen
+                                                }
+                                                setSelectedCard={
+                                                    setSelectedCard
+                                                }
+                                            />
+
+                                            {selectedCard && (
+                                                <CardModal
+                                                    isCardModalOpen={
+                                                        isCardModalOpen
+                                                    }
+                                                    setIsCardModalOpen={
+                                                        setIsCardModalOpen
+                                                    }
+                                                    card={selectedCard}
+                                                />
+                                            )}
+                                        </Fragment>
+                                    );
+                                })
                             ) : (
                                 <EmptyDropZone column={col} />
                             )}

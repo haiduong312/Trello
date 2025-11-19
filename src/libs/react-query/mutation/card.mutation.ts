@@ -7,7 +7,12 @@ export const useCreateCards = () => {
         mutationFn: async (
             card: Omit<
                 ICard,
-                "id" | "created_at" | "updated_at" | "description" | "position"
+                | "id"
+                | "created_at"
+                | "updated_at"
+                | "description"
+                | "position"
+                | "comment"
             >
         ) => {
             const data = await cardService.createCard(card);
