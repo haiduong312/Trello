@@ -32,7 +32,7 @@ declare global {
         card_id: string;
         content: string;
         created_at: Date;
-        user_id?: string;
+        user_id: string;
     }
 
     interface ICard {
@@ -43,6 +43,5 @@ declare global {
         created_at: Date;
         updated_at: Date;
         position: number;
-        comment: IComment[];
     }
 }

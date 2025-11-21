@@ -229,12 +229,7 @@ export const cardService = {
     async createCard(
         card: Omit<
             ICard,
-            | "id"
-            | "created_at"
-            | "updated_at"
-            | "description"
-            | "position"
-            | "comment"
+            "id" | "created_at" | "updated_at" | "description" | "position"
         >
     ): Promise<ICard> {
         const { data, error } = await supabase
@@ -264,10 +259,7 @@ export const cardService = {
     async updateCard(
         id: string,
         updates: Partial<
-            Pick<
-                ICard,
-                "title" | "description" | "column_id" | "position" | "comment"
-            >
+            Pick<ICard, "title" | "description" | "column_id" | "position">
         >
     ): Promise<ICard> {
         const { data, error } = await supabase
@@ -283,6 +275,73 @@ export const cardService = {
         if (error) {
             throw error;
         }
+        return data;
+    },
+    async updateCardDescription(
+        id: string,
+        description: string
+    ): Promise<ICard> {
+        const { data, error } = await supabase
+            .from("cards")
+            .update({
+                description,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+};
+
+export const commentService = {
+    async getCommentsByCardId(cardId: string): Promise<IComment[]> {
+        const { data, error } = await supabase
+            .from("comments")
+            .select("*")
+            .eq("card_id", cardId)
+            .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        return data || [];
+    },
+
+    async createComment(
+        comment: Omit<IComment, "id" | "created_at">
+    ): Promise<IComment> {
+        const { data, error } = await supabase
+            .from("comments")
+            .insert({
+                card_id: comment.card_id,
+                content: comment.content,
+                user_id: comment.user_id ?? null,
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteComment(id: string): Promise<void> {
+        const { error } = await supabase.from("comments").delete().eq("id", id);
+
+        if (error) throw error;
+    },
+
+    async updateComment(id: string, content: string): Promise<IComment> {
+        const { data, error } = await supabase
+            .from("comments")
+            .update({
+                content,
+            })
+            .eq("id", id)
+            .select()
+            .single();
+
+        if (error) throw error;
         return data;
     },
 };

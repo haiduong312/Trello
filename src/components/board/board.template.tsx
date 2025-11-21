@@ -415,6 +415,7 @@ const BoardTemplate = () => {
                                             card={activeDragCardData}
                                             isCardModalOpen={false}
                                             setIsCardModalOpen={() => {}}
+                                            setSelectedCard={() => {}}
                                         />
                                     )}
                             </DragOverlay>

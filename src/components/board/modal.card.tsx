@@ -2,6 +2,8 @@
 import { Modal, Input, Button } from "antd";
 import "@/components/styles/card.modal.scss";
 import { useEffect, useState } from "react";
+import { useCommentsByCardId } from "@/libs/react-query/query/comment.query";
+import { BeatLoader } from "react-spinners";
 
 interface IProps {
     isCardModalOpen: boolean;
@@ -10,22 +12,42 @@ interface IProps {
 }
 
 const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
-    console.log(card);
+    const { data: comments } = useCommentsByCardId(card.id);
     const [isEditingDescription, setIsEditingDescription] =
         useState<boolean>(false);
     const [description, setDescription] = useState<string>("");
     const [isEditingComment, setIsEditingComment] = useState(false);
     const [commentText, setCommentText] = useState("");
+    const [commentUsers, setCommentUsers] = useState<Record<string, any>>({});
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const handleCancel = () => setIsCardModalOpen(false);
+
     useEffect(() => {
-        setDescription(card.description ?? "");
-    }, [card]);
+        if (comments) {
+            const fetchUsers = async () => {
+                setIsLoading(true);
+                const results = await Promise.all(
+                    comments.map((c) =>
+                        fetch(`/api/users/${c.user_id}`).then((res) =>
+                            res.json()
+                        )
+                    )
+                );
+
+                const mapped: Record<string, any> = {};
+                results.forEach((u, i) => (mapped[comments[i].user_id] = u));
+                setCommentUsers(mapped);
+                setIsLoading(false);
+            };
+            fetchUsers();
+        }
+    }, [comments]);
     return (
         <Modal
             open={isCardModalOpen}
             onCancel={handleCancel}
             footer={null}
-            width={900}
+            width={1000}
             centered
             className="card-modal"
         >
@@ -36,19 +58,22 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                     <div className="actions">
                         <Button type="default">Add an comment</Button>
                         <Button type="default">Edit description</Button>
+                        <Button type="default">Delete this card</Button>
                     </div>
 
                     <div className="description">
                         <h3>Description</h3>
-                        {description ? (
-                            description
+                        {card.description ? (
+                            card.description
                         ) : (
                             <Input.TextArea
                                 value={description}
                                 placeholder="Add a more detailed description..."
                                 autoSize={{ minRows: 6 }}
                                 onFocus={() => setIsEditingDescription(true)}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={(e) => {
+                                    setDescription(e.target.value);
+                                }}
                             />
                         )}
 
@@ -112,14 +137,65 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                     )}
 
                     {/* Render comment list */}
-                    <div className="comment-list">
-                        {card.comment &&
-                            card.comment.map((c, i) => (
-                                <div key={i} className="comment-item">
-                                    {c.content}
-                                </div>
-                            ))}
-                    </div>
+                    {isLoading ? (
+                        <div style={{ marginTop: 20 }}>
+                            <BeatLoader size={10} color="#1677FF" />
+                        </div>
+                    ) : (
+                        <div className="comment-list">
+                            {comments &&
+                                comments.map((c, i) => {
+                                    return (
+                                        <div
+                                            className="comment-item"
+                                            key={c.id}
+                                        >
+                                            <div>
+                                                <img
+                                                    src={
+                                                        commentUsers[c.user_id]
+                                                            ?.imageUrl
+                                                    }
+                                                    alt=""
+                                                    className="avatar"
+                                                />
+                                            </div>
+
+                                            <div className="comment-body">
+                                                <div className="comment-header">
+                                                    <span className="username">
+                                                        {
+                                                            commentUsers[
+                                                                c.user_id
+                                                            ]?.firstName
+                                                        }{" "}
+                                                        {
+                                                            commentUsers[
+                                                                c.user_id
+                                                            ]?.lastName
+                                                        }
+                                                    </span>
+                                                </div>
+
+                                                <div className="comment-content">
+                                                    {c.content}
+                                                </div>
+
+                                                <div className="comment-actions">
+                                                    <button className="action-btn">
+                                                        Edit
+                                                    </button>
+                                                    <span>•</span>
+                                                    <button className="action-btn delete">
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    )}
                 </div>
             </div>
         </Modal>
