@@ -1,9 +1,10 @@
 "use client";
 import { Modal, Input, Button } from "antd";
 import "@/components/styles/card.modal.scss";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCommentsByCardId } from "@/libs/react-query/query/comment.query";
 import { BeatLoader } from "react-spinners";
+import { useUpdateCardDescription } from "@/libs/react-query/mutation/card.mutation";
 
 interface IProps {
     isCardModalOpen: boolean;
@@ -13,15 +14,33 @@ interface IProps {
 
 const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
     const { data: comments } = useCommentsByCardId(card.id);
+    const { mutate: addDescription } = useUpdateCardDescription();
     const [isEditingDescription, setIsEditingDescription] =
         useState<boolean>(false);
-    const [description, setDescription] = useState<string>("");
+    const [editingDescription, setEditingDescription] = useState<string>("");
     const [isEditingComment, setIsEditingComment] = useState(false);
     const [commentText, setCommentText] = useState("");
     const [commentUsers, setCommentUsers] = useState<Record<string, any>>({});
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const handleCancel = () => setIsCardModalOpen(false);
+    const [localCard, setLocalCard] = useState(card);
+    const descriptionInputRef = useRef<any>(null);
 
+    const handleCancel = () => {
+        setIsCardModalOpen(false);
+        setIsEditingDescription(false);
+        setIsEditingComment(false);
+    };
+    useEffect(() => {
+        setLocalCard(card);
+    }, [card]);
+    useEffect(() => {
+        setEditingDescription(card.description || "");
+    }, [card]);
+    useEffect(() => {
+        if (isEditingDescription) {
+            descriptionInputRef.current?.focus({ cursor: "end" });
+        }
+    }, [isEditingDescription]);
     useEffect(() => {
         if (comments) {
             const fetchUsers = async () => {
@@ -42,6 +61,33 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
             fetchUsers();
         }
     }, [comments]);
+    const handleAddDescription = async (
+        cardId: string,
+        description: string
+    ) => {
+        if (cardId && description) {
+            await addDescription(
+                {
+                    cardId: cardId,
+                    description: description,
+                },
+                {
+                    onSuccess: () => {
+                        setLocalCard((prev) => ({
+                            ...prev,
+                            description: editingDescription,
+                        }));
+                        setEditingDescription("");
+                        setIsEditingDescription(false);
+                    },
+                }
+            );
+        }
+    };
+    const handleEditClick = () => {
+        setEditingDescription(localCard.description || editingDescription);
+        setIsEditingDescription(true);
+    };
     return (
         <Modal
             open={isCardModalOpen}
@@ -54,26 +100,45 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
             <div className="card-modal-content">
                 {/* LEFT */}
                 <div className="left-section">
-                    <h2 className="card-title">{card.title}</h2>
+                    <h2 className="card-title">{localCard.title}</h2>
                     <div className="actions">
-                        <Button type="default">Add an comment</Button>
-                        <Button type="default">Edit description</Button>
-                        <Button type="default">Delete this card</Button>
+                        <Button type="default" onClick={handleEditClick}>
+                            Edit description
+                        </Button>
+                        <Button type="default" onClick={() => {}}>
+                            Delete card
+                        </Button>
                     </div>
 
                     <div className="description">
                         <h3>Description</h3>
-                        {card.description ? (
-                            card.description
+
+                        {!isEditingDescription ? (
+                            <div onClick={handleEditClick}>
+                                {localCard.description || (
+                                    <Input.TextArea
+                                        value={editingDescription}
+                                        placeholder="Add a more detailed description..."
+                                        onFocus={() =>
+                                            setIsEditingDescription(true)
+                                        }
+                                        onChange={(e) => {
+                                            setEditingDescription(
+                                                e.target.value
+                                            );
+                                        }}
+                                        autoSize={{ minRows: 6 }}
+                                    />
+                                )}
+                            </div>
                         ) : (
                             <Input.TextArea
-                                value={description}
-                                placeholder="Add a more detailed description..."
+                                ref={descriptionInputRef}
+                                value={editingDescription}
                                 autoSize={{ minRows: 6 }}
-                                onFocus={() => setIsEditingDescription(true)}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                }}
+                                onChange={(e) =>
+                                    setEditingDescription(e.target.value)
+                                }
                             />
                         )}
 
@@ -81,13 +146,16 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                             <div className="edit-actions">
                                 <Button
                                     type="primary"
-                                    disabled={!description.trim()}
                                     onClick={() =>
-                                        console.log("Save", description)
+                                        handleAddDescription(
+                                            card.id,
+                                            editingDescription
+                                        )
                                     }
                                 >
                                     Save
                                 </Button>
+
                                 <Button
                                     onClick={() =>
                                         setIsEditingDescription(false)
