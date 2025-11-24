@@ -294,6 +294,11 @@ export const cardService = {
         if (error) throw error;
         return data;
     },
+    async deleteCard(id: string): Promise<void> {
+        const { error } = await supabase.from("cards").delete().eq("id", id);
+
+        if (error) throw error;
+    },
 };
 
 export const commentService = {
@@ -316,7 +321,7 @@ export const commentService = {
             .insert({
                 card_id: comment.card_id,
                 content: comment.content,
-                user_id: comment.user_id ?? null,
+                user_id: comment.user_id,
             })
             .select()
             .single();

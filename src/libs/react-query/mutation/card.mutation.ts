@@ -79,3 +79,39 @@ export const useUpdateCardDescription = () => {
         },
     });
 };
+
+export const useDeleteCard = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (cardId: string) => {
+            return await cardService.deleteCard(cardId);
+        },
+
+        // Optimistic update
+        onMutate: async (cardId) => {
+            await queryClient.cancelQueries({ queryKey: ["cards"] });
+
+            const previousCards = queryClient.getQueryData<ICard[]>(["cards"]);
+
+            queryClient.setQueryData<ICard[]>(["cards"], (old) => {
+                if (!old) return old;
+                return old.filter((card) => card.id !== cardId);
+            });
+
+            return { previousCards };
+        },
+
+        // Rollback nếu lỗi
+        onError: (_err, _cardId, context) => {
+            if (context?.previousCards) {
+                queryClient.setQueryData(["cards"], context.previousCards);
+            }
+        },
+
+        // Đồng bộ lại DB
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["cards"] });
+        },
+    });
+};

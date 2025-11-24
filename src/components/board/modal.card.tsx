@@ -4,7 +4,16 @@ import "@/components/styles/card.modal.scss";
 import { useEffect, useRef, useState } from "react";
 import { useCommentsByCardId } from "@/libs/react-query/query/comment.query";
 import { BeatLoader } from "react-spinners";
-import { useUpdateCardDescription } from "@/libs/react-query/mutation/card.mutation";
+import {
+    useDeleteCard,
+    useUpdateCardDescription,
+} from "@/libs/react-query/mutation/card.mutation";
+import {
+    useCreateComment,
+    useDeleteComment,
+    useUpdateComment,
+} from "@/libs/react-query/mutation/comment.mutation";
+import { useUser } from "@clerk/nextjs";
 
 interface IProps {
     isCardModalOpen: boolean;
@@ -13,13 +22,23 @@ interface IProps {
 }
 
 const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
+    const { user } = useUser();
     const { data: comments } = useCommentsByCardId(card.id);
     const { mutate: addDescription } = useUpdateCardDescription();
+    const { mutateAsync: deleteCard } = useDeleteCard();
+    const { mutate: addComment } = useCreateComment();
+    const { mutateAsync: editComment } = useUpdateComment();
+    const { mutateAsync: removeComment } = useDeleteComment();
     const [isEditingDescription, setIsEditingDescription] =
         useState<boolean>(false);
     const [editingDescription, setEditingDescription] = useState<string>("");
     const [isEditingComment, setIsEditingComment] = useState(false);
     const [commentText, setCommentText] = useState("");
+    const [editingCommentId, setEditingCommentId] = useState<string | null>(
+        null
+    );
+    const [editingCommentText, setEditingCommentText] = useState("");
+
     const [commentUsers, setCommentUsers] = useState<Record<string, any>>({});
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [localCard, setLocalCard] = useState(card);
@@ -29,6 +48,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
         setIsCardModalOpen(false);
         setIsEditingDescription(false);
         setIsEditingComment(false);
+        setCommentText("");
     };
     useEffect(() => {
         setLocalCard(card);
@@ -88,6 +108,52 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
         setEditingDescription(localCard.description || editingDescription);
         setIsEditingDescription(true);
     };
+    const handleDeleteCard = async (cardId: string) => {
+        if (!cardId) return;
+
+        Modal.confirm({
+            title: "Delete this card?",
+            content: "This action cannot be undone.",
+            okText: "Delete",
+            okButtonProps: { danger: true },
+            cancelText: "Cancel",
+            onOk: async () => {
+                await deleteCard(cardId);
+                setIsCardModalOpen(false);
+            },
+        });
+    };
+    const handleAddComment = async () => {
+        if (!commentText.trim()) return;
+
+        if (user) {
+            await addComment(
+                {
+                    card_id: card.id,
+                    content: commentText,
+                    user_id: user.id,
+                },
+                {
+                    onSuccess: () => {
+                        setCommentText("");
+                        setIsEditingComment(false);
+                    },
+                }
+            );
+        }
+    };
+    const handleSaveEditComment = async () => {
+        if (!editingCommentId || !editingCommentText.trim()) return;
+
+        await editComment({
+            id: editingCommentId,
+            content: editingCommentText,
+        });
+
+        setEditingCommentId(null);
+        setEditingCommentText("");
+    };
+
     return (
         <Modal
             open={isCardModalOpen}
@@ -105,7 +171,10 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                         <Button type="default" onClick={handleEditClick}>
                             Edit description
                         </Button>
-                        <Button type="default" onClick={() => {}}>
+                        <Button
+                            type="default"
+                            onClick={() => handleDeleteCard(card.id)}
+                        >
                             Delete card
                         </Button>
                     </div>
@@ -175,7 +244,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                     <Input.TextArea
                         value={commentText}
                         placeholder="Write a comment..."
-                        autoSize={{ minRows: 3 }}
+                        autoSize={{ minRows: 1 }}
                         onFocus={() => setIsEditingComment(true)}
                         onChange={(e) => setCommentText(e.target.value)}
                     />
@@ -185,10 +254,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                             <Button
                                 type="primary"
                                 disabled={!commentText.trim()}
-                                onClick={() => {
-                                    setCommentText(""); // clear
-                                    setIsEditingComment(false); // tắt edit
-                                }}
+                                onClick={handleAddComment}
                             >
                                 Save
                             </Button>
@@ -245,18 +311,89 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, card }: IProps) => {
                                                     </span>
                                                 </div>
 
-                                                <div className="comment-content">
-                                                    {c.content}
-                                                </div>
+                                                {editingCommentId === c.id ? (
+                                                    <Input.TextArea
+                                                        value={
+                                                            editingCommentText
+                                                        }
+                                                        autoSize={{
+                                                            minRows: 1,
+                                                        }}
+                                                        onChange={(e) =>
+                                                            setEditingCommentText(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <div className="comment-content">
+                                                        {c.content}
+                                                    </div>
+                                                )}
 
                                                 <div className="comment-actions">
-                                                    <button className="action-btn">
+                                                    <button
+                                                        className="action-btn"
+                                                        onClick={() => {
+                                                            setEditingCommentId(
+                                                                c.id
+                                                            );
+                                                            setEditingCommentText(
+                                                                c.content
+                                                            );
+                                                        }}
+                                                    >
                                                         Edit
                                                     </button>
                                                     <span>•</span>
-                                                    <button className="action-btn delete">
+                                                    <button
+                                                        className="action-btn delete"
+                                                        onClick={() => {
+                                                            Modal.confirm({
+                                                                title: "Delete comment?",
+                                                                okText: "Delete",
+                                                                okButtonProps: {
+                                                                    danger: true,
+                                                                },
+                                                                cancelText:
+                                                                    "Cancel",
+                                                                onOk: async () => {
+                                                                    await removeComment(
+                                                                        c.id
+                                                                    );
+                                                                },
+                                                            });
+                                                        }}
+                                                    >
                                                         Delete
                                                     </button>
+
+                                                    {editingCommentId ===
+                                                        c.id && (
+                                                        <div className="edit-actions">
+                                                            <Button
+                                                                type="primary"
+                                                                onClick={
+                                                                    handleSaveEditComment
+                                                                }
+                                                            >
+                                                                Save
+                                                            </Button>
+
+                                                            <Button
+                                                                onClick={() => {
+                                                                    setEditingCommentId(
+                                                                        null
+                                                                    );
+                                                                    setEditingCommentText(
+                                                                        ""
+                                                                    );
+                                                                }}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

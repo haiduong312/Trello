@@ -5,7 +5,15 @@ export const useCreateComment = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: commentService.createComment,
+        mutationFn: ({
+            card_id,
+            content,
+            user_id,
+        }: {
+            card_id: string;
+            content: string;
+            user_id: string;
+        }) => commentService.createComment({ card_id, content, user_id }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["comments"] });
         },
