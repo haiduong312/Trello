@@ -1,0 +1,16 @@
+.sidebar-menu-wrapper {
+    width: 256px;
+    height: 100vh;
+    overflow-y: scroll; /* luôn có không gian scroll, không lệch layout */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE, Edge */
+}
+
+/* Chrome, Safari */
+.sidebar-menu-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.ant-menu-light .ant-menu-sub.ant-menu-inline {
+    background: none !important;
+}

@@ -1,18 +1,12 @@
 "use client";
 
-import { Button, Avatar, Typography, Space } from "antd";
+import { Typography, Space } from "antd";
 import {
-    StarOutlined,
-    StarFilled,
-    LockOutlined,
-    TeamOutlined,
     EllipsisOutlined,
-    UserAddOutlined,
     BugOutlined,
     FolderOpenOutlined,
     ThunderboltOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
 import "@/components/styles/board.style.scss";
 import { UserButton } from "@clerk/nextjs";
 

@@ -28,7 +28,7 @@ const WorkSpaces = () => {
     const orgId = organization?.id ?? "personal";
     const { Meta } = Card;
     const { user } = useUser();
-    const { mutate } = useCreateBoards();
+    const { mutate: createBoards } = useCreateBoards();
     const [createTitle, setCreateTitle] = useState<string>("");
     const [createBg, setCreateBg] = useState<string>(
         "/assets/background-1.jpg"
@@ -49,7 +49,7 @@ const WorkSpaces = () => {
 
     const handleOk = () => {
         if (user) {
-            mutate(
+            createBoards(
                 {
                     user_id: user.id,
                     title: createTitle,
