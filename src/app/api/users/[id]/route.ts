@@ -1,16 +1,3 @@
-// import { NextResponse } from "next/server";
-
-// export async function GET(req: Request, { params }: any) {
-//     const res = await fetch(`https://api.clerk.com/v1/users/${params.id}`, {
-//         headers: {
-//             Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-//         },
-//     });
-
-//     const data = await res.json();
-//     return NextResponse.json(data);
-// }
-// src/app/api/users/[id]/route.ts
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 

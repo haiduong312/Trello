@@ -1,20 +1,21 @@
 "use client";
 
-import { AppstoreOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Input, Layout, Popover } from "antd";
+import { AppstoreOutlined } from "@ant-design/icons";
+import { Layout, Popover } from "antd";
 import "@/components/styles/header.style.scss";
 import Image from "next/image";
 import {
     OrganizationSwitcher,
     useAuth,
-    useOrganization,
     UserButton,
     useUser,
 } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import TrelloSearch from "../template/trello.search";
+
 export default function AppHeader() {
     const router = useRouter();
     const pathname = usePathname();
@@ -81,15 +82,7 @@ export default function AppHeader() {
                     </Link>
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <Input
-                        placeholder="Search"
-                        prefix={<SearchOutlined />}
-                        style={{ width: "780px" }}
-                        className="trello-input"
-                    />
-                    <Button style={{ marginLeft: 8 }} type="primary">
-                        Search
-                    </Button>
+                    <TrelloSearch />
                 </div>
                 <div
                     style={{
