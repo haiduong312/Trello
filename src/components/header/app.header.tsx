@@ -12,11 +12,13 @@ import {
 } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import TrelloSearch from "../template/trello.search";
+import { useMostPopularBoard } from "@/libs/react-query/query/board.query";
 
 export default function AppHeader() {
+    const { data: mostPopularBoards } = useMostPopularBoard();
     const router = useRouter();
     const pathname = usePathname();
     const { orgId } = useAuth();
@@ -82,7 +84,9 @@ export default function AppHeader() {
                     </Link>
                 </div>
                 <div style={{ display: "flex", alignItems: "center" }}>
-                    <TrelloSearch />
+                    {mostPopularBoards && (
+                        <TrelloSearch mostPopularBoards={mostPopularBoards} />
+                    )}
                 </div>
                 <div
                     style={{

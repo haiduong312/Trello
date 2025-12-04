@@ -2,18 +2,21 @@
 import { Dropdown, Input, Avatar, Divider } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import "@/components/styles/header.style.scss";
-import { useEffect, useState } from "react";
-import { useMostPopularBoard } from "@/libs/react-query/query/board.query";
+import { useEffect, useMemo, useState } from "react";
 import { BeatLoader } from "react-spinners";
+import Link from "next/link";
 
-export default function TrelloSearch() {
-    const { data: mostPopularBoards } = useMostPopularBoard();
+interface IProps {
+    mostPopularBoards: IBoard[];
+}
+export default function TrelloSearch({ mostPopularBoards }: IProps) {
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState("");
     const [originalData, setOriginalData] = useState<any[]>([]);
     const [results, setResults] = useState<any[]>([]);
     const [debouncedValue, setDebouncedValue] = useState(value);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedValue(value), 300); // đợi 300ms
         return () => clearTimeout(timer);
@@ -133,56 +136,68 @@ export default function TrelloSearch() {
                                 zIndex: 1000,
                             }}
                         >
-                            <BeatLoader color="#1890ff" size={15} margin={5} />
+                            <BeatLoader color="#1890ff" size={10} margin={5} />
                         </div>
                     ) : (
                         results.map((item, i) => (
-                            <div
-                                key={i}
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    padding: "10px 16px",
-                                    cursor: "pointer",
+                            <Link
+                                href={`/board/${item.id}`}
+                                onClick={() => {
+                                    setOpen(false);
+                                    setValue("");
+                                    setDebouncedValue("");
+                                    setResults([]);
+                                    setOriginalData([]);
+                                    setIsLoading(false);
                                 }}
-                                onMouseEnter={(e) =>
-                                    (e.currentTarget.style.background =
-                                        "#f5f6f8")
-                                }
-                                onMouseLeave={(e) =>
-                                    (e.currentTarget.style.background =
-                                        "transparent")
-                                }
                             >
-                                <Avatar
-                                    shape="square"
-                                    size={42}
-                                    src={item.backgroundUrl}
+                                <div
+                                    key={i}
                                     style={{
-                                        marginRight: 14,
-                                        borderRadius: 6,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        padding: "10px 16px",
+                                        cursor: "pointer",
                                     }}
-                                />
+                                    onMouseEnter={(e) =>
+                                        (e.currentTarget.style.background =
+                                            "#f5f6f8")
+                                    }
+                                    onMouseLeave={(e) =>
+                                        (e.currentTarget.style.background =
+                                            "transparent")
+                                    }
+                                >
+                                    <Avatar
+                                        shape="square"
+                                        size={42}
+                                        src={item.backgroundUrl}
+                                        style={{
+                                            marginRight: 14,
+                                            borderRadius: 6,
+                                        }}
+                                    />
 
-                                <div>
-                                    <div
-                                        style={{
-                                            fontWeight: 500,
-                                            fontSize: 15,
-                                        }}
-                                    >
-                                        {item.title}
-                                    </div>
-                                    <div
-                                        style={{
-                                            fontSize: 13,
-                                            color: "#666",
-                                        }}
-                                    >
-                                        Most Popular Templates
+                                    <div>
+                                        <div
+                                            style={{
+                                                fontWeight: 500,
+                                                fontSize: 15,
+                                            }}
+                                        >
+                                            {item.title}
+                                        </div>
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                color: "#666",
+                                            }}
+                                        >
+                                            Your Workspaces
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))
                     ))}
             </div>
@@ -217,22 +232,25 @@ export default function TrelloSearch() {
             </div>
         </div>
     );
+    const overlayMemo = useMemo(
+        () => overlay,
+        [value, results, isLoading, mostPopularBoards]
+    );
+    const handleOpenChange = (val: boolean) => {
+        setOpen(val);
+        if (!val) {
+            setValue("");
+            setDebouncedValue("");
+            setResults([]);
+        }
+    };
 
     return (
         <Dropdown
             open={open}
-            onOpenChange={(val) => {
-                setOpen(val);
-                if (!val) {
-                    setValue("");
-                    setDebouncedValue("");
-                    setResults([]);
-                    setOriginalData([]);
-                    setIsLoading(false);
-                }
-            }}
+            onOpenChange={handleOpenChange}
             trigger={["click"]}
-            popupRender={() => overlay}
+            popupRender={() => overlayMemo}
         >
             <Input
                 placeholder="Search"

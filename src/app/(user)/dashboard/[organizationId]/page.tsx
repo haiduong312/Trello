@@ -1,18 +1,27 @@
-import React from "react";
-import { Col, Row } from "antd";
 import DashboardMenu from "@/components/dashboard/dashboard.menu";
 import MostPopularTemplate from "@/components/dashboard/mostPopular";
 import WorkSpaces from "@/components/dashboard/workspaces";
 
-const DashboardPage = async () => {
+export default async function DashboardPage() {
     return (
-        <Row>
-            <Col span={4} style={{ padding: "40px 0 0 32px" }}>
-                <DashboardMenu />
-            </Col>
-            <Col
-                span={20}
+        <div
+            style={{
+                display: "flex",
+                width: "100%",
+            }}
+        >
+            <div
                 style={{
+                    width: "16.6667%",
+                    padding: "40px 0 0 32px",
+                }}
+            >
+                <DashboardMenu />
+            </div>
+
+            <div
+                style={{
+                    width: "83.3333%",
                     padding: "48px 56px",
                     display: "flex",
                     justifyContent: "center",
@@ -28,8 +37,7 @@ const DashboardPage = async () => {
                         <WorkSpaces />
                     </div>
                 </div>
-            </Col>
-        </Row>
+            </div>
+        </div>
     );
-};
-export default DashboardPage;
+}
