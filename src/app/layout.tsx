@@ -29,13 +29,13 @@ export default async function RootLayout({
     return (
         <html lang="en">
             <body className={inter.className}>
-                <NprogressProviders>
-                    <AntdRegistry>
-                        <QueryProvider>
-                            <ClerkProvider>{children}</ClerkProvider>
-                        </QueryProvider>
-                    </AntdRegistry>
-                </NprogressProviders>
+                <ClerkProvider>
+                    <QueryProvider>
+                        <NprogressProviders>
+                            <AntdRegistry>{children}</AntdRegistry>
+                        </NprogressProviders>
+                    </QueryProvider>
+                </ClerkProvider>
             </body>
         </html>
     );

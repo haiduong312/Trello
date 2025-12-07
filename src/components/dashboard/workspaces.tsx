@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Input, Modal } from "antd";
-import "@/components/styles/mostpopular.scss";
+import "@/components/styles/workspaces.scss";
 import Image from "next/image";
 import { useState } from "react";
 import { useOrganization, useUser } from "@clerk/nextjs";
@@ -87,18 +87,12 @@ const WorkSpaces = () => {
                     Your Workspaces
                 </h2>
             </div>
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 40,
-                    rowGap: 40,
-                }}
-            >
+            <div className="workspace-grid">
                 {boards?.map((item, index) => (
                     <Link href={`/board/${item.id}`} key={index}>
                         <Card
                             hoverable
+                            className="workspace-card"
                             style={{
                                 height: 113,
                                 width: "100%",
@@ -141,7 +135,7 @@ const WorkSpaces = () => {
                     hoverable
                     style={{
                         height: 113,
-                        width: 215,
+                        width: "100%",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",

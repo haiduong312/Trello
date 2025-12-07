@@ -83,7 +83,14 @@ export default function AppHeader() {
                         <div className="title">Trello</div>
                     </Link>
                 </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        minWidth: 0,
+                    }}
+                    className="header-search"
+                >
                     {mostPopularBoards && (
                         <TrelloSearch mostPopularBoards={mostPopularBoards} />
                     )}

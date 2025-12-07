@@ -1,77 +1,103 @@
 .options-icon {
-  height: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  &:hover {
-    background: #f0f0f0;
-  }
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    &:hover {
+        background: #f0f0f0;
+    }
 }
 .app-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px 0px 10px;
-  border-radius: 4px;
-  height: 35px;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px 0px 10px;
+    border-radius: 4px;
+    height: 35px;
+    cursor: pointer;
 
-  &:hover {
-    background: #f0f0f0;
-  }
-  .title {
-    color: #1677ff;
-    font-size: 16px;
-    margin-left: 8px;
-  }
+    &:hover {
+        background: #f0f0f0;
+    }
+    .title {
+        color: #1677ff;
+        font-size: 16px;
+        margin-left: 8px;
+    }
 }
 
 .noti {
-  height: 35px;
-  width: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
 
-  &:hover {
-    background: #f0f0f0;
-  }
+    &:hover {
+        background: #f0f0f0;
+    }
 }
 .bell {
-  height: 35px;
-  width: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
 
-  &:hover {
-    background: #f0f0f0;
-  }
+    &:hover {
+        background: #f0f0f0;
+    }
 }
 .ques {
-  height: 35px;
-  width: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
 
-  &:hover {
-    background: #f0f0f0;
-  }
+    &:hover {
+        background: #f0f0f0;
+    }
 }
 .ava {
-  height: 35px;
-  width: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+    height: 35px;
+    width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
 
-  &:hover {
-    background: #f0f0f0;
-  }
+    &:hover {
+        background: #f0f0f0;
+    }
+}
+
+@media (max-width: 1200px) {
+    .header-search {
+        max-width: 600px;
+        min-width: 150px;
+    }
+}
+@media (max-width: 900px) {
+    .header-search {
+        max-width: 400px;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-search {
+        max-width: 300px;
+        min-width: 150px;
+    }
+}
+
+@media (max-width: 600px) {
+    .header-search {
+        max-width: 150px;
+    }
 }

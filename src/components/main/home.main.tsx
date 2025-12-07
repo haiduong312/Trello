@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedOut, SignUpButton } from "@clerk/nextjs";
-import { Button, Card } from "antd";
+import { Button, Card, Row, Col } from "antd";
 import {
     CheckSquareOutlined,
     TeamOutlined,
@@ -55,88 +55,70 @@ const HomeMain = () => {
             }}
         >
             <GuestHeader />
+
             {/* Hero Section */}
             <section style={{ padding: "80px 16px", textAlign: "center" }}>
                 <div style={{ maxWidth: 900, margin: "0 auto" }}>
                     <h1
                         style={{
-                            fontSize: "56px",
+                            fontSize: "clamp(32px, 6vw, 56px)",
                             fontWeight: "bold",
                             color: "#111827",
-                            marginBottom: "24px",
+                            marginBottom: 24,
                         }}
                     >
                         Organize work and life,{" "}
                         <span style={{ color: "#2563eb" }}>finally.</span>
                     </h1>
+
                     <p
                         style={{
-                            fontSize: "20px",
+                            fontSize: "clamp(16px, 2.5vw, 20px)",
                             color: "#4b5563",
-                            marginBottom: "32px",
+                            marginBottom: 32,
                             maxWidth: 600,
                             marginInline: "auto",
                         }}
                     >
                         TrelloClone helps teams move work forward. Collaborate,
-                        manage projects, and reach new productivity peaks. From
-                        high rises to the home office, the way your team works
-                        is unique—accomplish it all with TrelloClone.
+                        manage projects, and reach new productivity peaks.
                     </p>
 
                     <SignedOut>
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "16px",
-                                justifyContent: "center",
-                                flexWrap: "wrap",
-                            }}
-                        >
-                            <SignUpButton>
-                                <Button
-                                    type="primary"
-                                    size="large"
-                                    style={{
-                                        fontSize: "16px",
-                                        padding: "8px 32px",
-                                    }}
-                                    icon={<ArrowRightOutlined />}
-                                >
-                                    Start for free
-                                </Button>
-                            </SignUpButton>
-                            <Button
-                                size="large"
-                                style={{
-                                    fontSize: "16px",
-                                    padding: "8px 32px",
-                                    borderColor: "#d1d5db",
-                                }}
-                            >
-                                Watch demo
-                            </Button>
-                        </div>
+                        <Row gutter={[16, 16]} justify="center">
+                            <Col xs={18} sm={12} md={8}>
+                                <SignUpButton>
+                                    <Button
+                                        type="primary"
+                                        size="large"
+                                        block
+                                        icon={<ArrowRightOutlined />}
+                                    >
+                                        Start for free
+                                    </Button>
+                                </SignUpButton>
+                            </Col>
+                        </Row>
                     </SignedOut>
                 </div>
             </section>
 
             {/* Features Section */}
             <section style={{ padding: "80px 16px" }}>
-                <div style={{ textAlign: "center", marginBottom: "64px" }}>
+                <div style={{ textAlign: "center", marginBottom: 64 }}>
                     <h2
                         style={{
-                            fontSize: "32px",
+                            fontSize: 32,
                             fontWeight: "bold",
                             color: "#111827",
-                            marginBottom: "16px",
+                            marginBottom: 16,
                         }}
                     >
                         Everything you need to stay organized
                     </h2>
                     <p
                         style={{
-                            fontSize: "18px",
+                            fontSize: 18,
                             color: "#4b5563",
                             maxWidth: 600,
                             margin: "0 auto",
@@ -147,57 +129,54 @@ const HomeMain = () => {
                     </p>
                 </div>
 
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                            "repeat(auto-fit, minmax(250px, 1fr))",
-                        gap: "24px",
-                        maxWidth: 1200,
-                        margin: "0 auto",
-                    }}
+                <Row
+                    gutter={[24, 24]}
+                    style={{ maxWidth: 1200, margin: "0 auto" }}
                 >
                     {features.map((feature, index) => (
-                        <Card
-                            key={index}
-                            hoverable
-                            style={{
-                                border: "none",
-                                boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-                                textAlign: "center",
-                                padding: "16px",
-                            }}
-                        >
-                            <div
+                        <Col key={index} xs={24} sm={12} md={12} lg={6} xl={6}>
+                            <Card
+                                hoverable
                                 style={{
-                                    width: 48,
-                                    height: 48,
-                                    borderRadius: 8,
-                                    background: "#dbeafe",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    margin: "0 auto 16px",
+                                    border: "none",
+                                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                                    textAlign: "center",
+                                    padding: 16,
+                                    height: "100%",
                                 }}
                             >
-                                {feature.icon}
-                            </div>
-                            <h3
-                                style={{
-                                    fontSize: "18px",
-                                    marginBottom: "8px",
-                                }}
-                            >
-                                {feature.title}
-                            </h3>
-                            <p style={{ color: "#6b7280" }}>
-                                {feature.description}
-                            </p>
-                        </Card>
+                                <div
+                                    style={{
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: 8,
+                                        background: "#dbeafe",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        margin: "0 auto 16px",
+                                    }}
+                                >
+                                    {feature.icon}
+                                </div>
+                                <h3
+                                    style={{
+                                        fontSize: 18,
+                                        marginBottom: 8,
+                                    }}
+                                >
+                                    {feature.title}
+                                </h3>
+                                <p style={{ color: "#6b7280" }}>
+                                    {feature.description}
+                                </p>
+                            </Card>
+                        </Col>
                     ))}
-                </div>
+                </Row>
             </section>
         </div>
     );
 };
+
 export default HomeMain;

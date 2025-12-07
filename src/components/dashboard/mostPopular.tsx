@@ -20,14 +20,7 @@ const MostPopularTemplate = () => {
                     Most Popular Templates
                 </h2>
             </div>
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: 40,
-                    rowGap: 40,
-                }}
-            >
+            <div className="most-popular-grid">
                 {mostPopularBoards?.map((item, index) => {
                     return (
                         <Link href={`/board/${item.id}`} key={index}>
@@ -36,7 +29,6 @@ const MostPopularTemplate = () => {
                                 hoverable
                                 style={{
                                     height: 113,
-                                    width: "100%",
                                     textAlign: "center",
                                 }}
                                 styles={{

@@ -2,3 +2,44 @@ a {
     text-decoration: none;
     color: inherit;
 }
+.most-popular-grid {
+    display: grid;
+    gap: 40px;
+    row-gap: 40px;
+
+    /* Desktop 4 cột */
+    grid-template-columns: repeat(4, 1fr);
+
+    @media (max-width: 1200px) {
+        /* Laptop 3 cột */
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: 900px) {
+        /* Tablet 2 cột */
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 750px) {
+        /* Tablet 2 cột */
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 395px) {
+        /* Mobile 1 cột */
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+
+/* Card cover image responsive */
+.most-popular-card-cover {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Trello-like card body padding */
+.ant-card-body {
+    padding: 8px 0 !important;
+}

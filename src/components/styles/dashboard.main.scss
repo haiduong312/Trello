@@ -1,0 +1,28 @@
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    overflow: "hidden";
+}
+.dashboard-menu-wrapper {
+    width: 16.6667%;
+    min-width: 250px;
+    padding: 40px 0 0 32px;
+}
+.content-container {
+    width: calc(100% - 16.6667%);
+    padding: 48px 56px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: "hidden";
+}
+@media (max-width: 750px) {
+    .dashboard-menu-wrapper {
+        display: none !important;
+    }
+    .content-container {
+        width: 100% !important;
+        padding: 16px !important;
+    }
+}
